@@ -1,0 +1,220 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  STUDENT
+  INSTRUCTOR
+  REGISTRAR
+  SUPER_ADMIN
+}
+
+enum EnrollmentStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  ACTIVE
+  COMPLETED
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+}
+
+enum LeadStatus {
+  NEW
+  CONTACTED
+  CONVERTED
+}
+
+model User {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  phone        String?
+  passwordHash String
+  role         Role     @default(STUDENT)
+  status       String   @default("active")
+  createdAt    DateTime @default(now())
+
+  student    Student?
+  instructor Instructor?
+}
+
+model Student {
+  id            String   @id @default(cuid())
+  userId        String   @unique
+  user          User     @relation(fields: [userId], references: [id])
+  idNumber      String?
+  dob           String?
+  address       String?
+  guardianName  String?
+  guardianPhone String?
+  photoUrl      String?
+
+  enrollments Enrollment[]
+  submissions Submission[]
+}
+
+model Instructor {
+  id             String  @id @default(cuid())
+  userId         String  @unique
+  user           User    @relation(fields: [userId], references: [id])
+  bio            String?
+  specialization String?
+  photoUrl       String?
+
+  batches Batch[]
+}
+
+model Category {
+  id      String   @id @default(cuid())
+  name    String   @unique
+  courses Course[]
+}
+
+model Course {
+  id            String   @id @default(cuid())
+  title         String
+  slug          String   @unique
+  description   String
+  durationWeeks Int
+  fee           Float
+  level         String
+  categoryId    String?
+  category      Category? @relation(fields: [categoryId], references: [id])
+  thumbnailUrl  String?
+  syllabusUrl   String?
+  isPublished   Boolean  @default(true)
+  createdAt     DateTime @default(now())
+
+  batches Batch[]
+}
+
+model Batch {
+  id           String   @id @default(cuid())
+  courseId     String
+  course       Course   @relation(fields: [courseId], references: [id])
+  instructorId String?
+  instructor   Instructor? @relation(fields: [instructorId], references: [id])
+  startDate    DateTime
+  endDate      DateTime
+  schedule     String
+  capacity     Int
+  mode         String   @default("onsite")
+  status       String   @default("upcoming")
+
+  enrollments Enrollment[]
+  assignments Assignment[]
+  attendance  Attendance[]
+}
+
+model Enrollment {
+  id         String           @id @default(cuid())
+  studentId  String
+  student    Student          @relation(fields: [studentId], references: [id])
+  batchId    String
+  batch      Batch            @relation(fields: [batchId], references: [id])
+  status     EnrollmentStatus @default(PENDING)
+  enrolledAt DateTime         @default(now())
+
+  payments    Payment[]
+  attendance  Attendance[]
+  grades      Grade[]
+  certificate Certificate?
+}
+
+model Payment {
+  id              String        @id @default(cuid())
+  enrollmentId    String
+  enrollment      Enrollment    @relation(fields: [enrollmentId], references: [id])
+  amount          Float
+  method          String        @default("manual")
+  status          PaymentStatus @default(PENDING)
+  transactionRef  String?
+  paidAt          DateTime?
+  createdAt       DateTime      @default(now())
+}
+
+model Attendance {
+  id           String     @id @default(cuid())
+  enrollmentId String
+  enrollment   Enrollment @relation(fields: [enrollmentId], references: [id])
+  batchId      String
+  batch        Batch      @relation(fields: [batchId], references: [id])
+  sessionDate  DateTime
+  status       String
+}
+
+model Assignment {
+  id            String   @id @default(cuid())
+  batchId       String
+  batch         Batch    @relation(fields: [batchId], references: [id])
+  title         String
+  description   String
+  dueDate       DateTime
+  maxMarks      Int
+  attachmentUrl String?
+
+  submissions Submission[]
+}
+
+model Submission {
+  id             String    @id @default(cuid())
+  assignmentId   String
+  assignment     Assignment @relation(fields: [assignmentId], references: [id])
+  studentId      String
+  student        Student   @relation(fields: [studentId], references: [id])
+  fileUrl        String?
+  submittedAt    DateTime  @default(now())
+  marksObtained  Int?
+  feedback       String?
+}
+
+model Grade {
+  id            String     @id @default(cuid())
+  enrollmentId  String
+  enrollment    Enrollment @relation(fields: [enrollmentId], references: [id])
+  examType      String
+  marksObtained Float
+  maxMarks      Float
+  remarks       String?
+}
+
+model Certificate {
+  id               String     @id @default(cuid())
+  enrollmentId     String     @unique
+  enrollment       Enrollment @relation(fields: [enrollmentId], references: [id])
+  certificateUrl   String?
+  issuedAt         DateTime   @default(now())
+  verificationCode String     @unique
+}
+
+model Announcement {
+  id        String   @id @default(cuid())
+  title     String
+  body      String
+  audience  String   @default("all")
+  batchId   String?
+  createdBy String?
+  createdAt DateTime @default(now())
+}
+
+model ContactLead {
+  id             String     @id @default(cuid())
+  name           String
+  email          String
+  phone          String?
+  message        String?
+  courseInterest String?
+  status         LeadStatus @default(NEW)
+  createdAt      DateTime   @default(now())
+}

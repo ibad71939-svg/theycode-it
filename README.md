@@ -29,3 +29,4 @@ npm run dev             # runs on http://localhost:5173
 See `ARCHITECTURE.md` in this repo (or the copy shared in chat) for full system design,
 what's implemented, what's stubbed, and what's left to build for production.
 "# theycode-it" 
+"# theycode-it" 
