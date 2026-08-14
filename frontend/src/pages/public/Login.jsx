@@ -26,57 +26,61 @@ export default function Login() {
   }
 
   return (
-    <div className="max-w-md mx-auto px-6 py-16">
-      <span className="w-10 h-10 rounded-md bg-ink text-mint font-mono text-sm font-semibold flex items-center justify-center mb-5">
-        &gt;_
-      </span>
-      <h1 className="font-display text-2xl md:text-3xl font-semibold mb-1">
-        {mode === 'login' ? 'Welcome back' : 'Create your student account'}
-      </h1>
-      <p className="text-muted mb-6 text-sm">
-        {mode === 'login' ? 'Login to access your student or admin portal.' : 'Register to start applying for courses.'}
-      </p>
+    <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center px-4 py-12 gradient-mesh">
+      <div className="w-full max-w-md">
+        <div className="text-center mb-8">
+          <span className="inline-flex w-12 h-12 rounded-xl bg-brand text-white font-mono text-base font-bold items-center justify-center mb-4">
+            TCI
+          </span>
+          <h1 className="font-display text-2xl md:text-3xl font-bold mb-1">
+            {mode === 'login' ? 'Welcome back' : 'Create your student account'}
+          </h1>
+          <p className="text-muted text-sm">
+            {mode === 'login' ? 'Login to access your student or admin portal.' : 'Register to start applying for courses.'}
+          </p>
+        </div>
 
-      <form onSubmit={handleSubmit} className="space-y-4 card p-6">
-        {mode === 'register' && (
-          <Field label="Full name" required>
-            <input name="name" required placeholder="Full name" className="field-input"
-              value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+        <form onSubmit={handleSubmit} className="card p-7 space-y-4">
+          {mode === 'register' && (
+            <Field label="Full name" required>
+              <input name="name" required placeholder="Full name" className="field-input"
+                value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+            </Field>
+          )}
+          <Field label="Email" required>
+            <input name="email" required type="email" placeholder="Email" className="field-input"
+              value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
           </Field>
-        )}
-        <Field label="Email" required>
-          <input name="email" required type="email" placeholder="Email" className="field-input"
-            value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
-        </Field>
-        {mode === 'register' && (
-          <Field label="Phone (optional)">
-            <input name="phone" placeholder="Phone (optional)" className="field-input"
-              value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
+          {mode === 'register' && (
+            <Field label="Phone (optional)">
+              <input name="phone" placeholder="Phone (optional)" className="field-input"
+                value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
+            </Field>
+          )}
+          <Field label="Password" required>
+            <input name="password" required type="password" placeholder="Password" className="field-input"
+              value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} />
           </Field>
-        )}
-        <Field label="Password" required>
-          <input name="password" required type="password" placeholder="Password" className="field-input"
-            value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} />
-        </Field>
 
-        {error && <p className="text-danger text-sm">{error}</p>}
+          {error && <p className="text-danger text-sm bg-danger-50 px-3 py-2 rounded-lg">{error}</p>}
 
-        <button type="submit" className="btn-primary w-full">
-          {mode === 'login' ? 'Login' : 'Create Account'}
-        </button>
-      </form>
+          <button type="submit" className="btn-primary w-full">
+            {mode === 'login' ? 'Login' : 'Create Account'}
+          </button>
+        </form>
 
-      <p className="text-sm text-muted mt-4 text-center">
-        {mode === 'login' ? (
-          <>New here? <Link to="/register" className="text-brand-dark font-medium">Create an account</Link></>
-        ) : (
-          <>Already have an account? <Link to="/login" className="text-brand-dark font-medium">Login</Link></>
-        )}
-      </p>
-      <p className="text-xs text-muted mt-6 text-center font-mono">
-        demo — admin@theycodeit.com / Passw0rd! · student@theycodeit.com / Passw0rd!
-      </p>
-      <Link to="/" className="block text-center text-xs text-muted mt-2 hover:text-brand">← Back to home</Link>
+        <p className="text-sm text-muted mt-5 text-center">
+          {mode === 'login' ? (
+            <>New here? <Link to="/register" className="text-brand-700 font-semibold">Create an account</Link></>
+          ) : (
+            <>Already have an account? <Link to="/login" className="text-brand-700 font-semibold">Login</Link></>
+          )}
+        </p>
+        <p className="text-xs text-muted mt-6 text-center font-mono">
+          demo — admin@theycodeit.com / Passw0rd! · student@theycodeit.com / Passw0rd!
+        </p>
+        <Link to="/" className="block text-center text-xs text-muted mt-3 hover:text-brand-700">← Back to home</Link>
+      </div>
     </div>
   );
 }

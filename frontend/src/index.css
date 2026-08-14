@@ -1,11 +1,11 @@
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 * {
-  border-color: theme('colors.ink / 10%');
+  border-color: theme('colors.line');
 }
 
 html {
@@ -17,7 +17,7 @@ body {
 }
 
 ::selection {
-  @apply bg-brand/20 text-ink;
+  @apply bg-brand-100 text-brand-700;
 }
 
 :focus-visible {
@@ -46,51 +46,32 @@ body {
 }
 
 @layer components {
-  /* ---- Signature element: editor-window chrome ----
-     Every content module that wants the "code editor" identity
-     wraps in .editor-window, with an optional .editor-titlebar. */
-  .editor-window {
-    @apply bg-white border border-ink/10 rounded-editor shadow-editor overflow-hidden;
-  }
-
-  .editor-titlebar {
-    @apply flex items-center gap-3 px-4 py-2.5 bg-ink text-white/70;
-  }
-
-  .editor-dots {
-    @apply flex items-center gap-1.5 shrink-0;
-  }
-
-  .editor-dot {
-    @apply w-2.5 h-2.5 rounded-full;
-  }
-
-  .editor-filename {
-    @apply font-mono text-xs text-white/50 tracking-tight truncate;
-  }
-
   .kicker {
-    @apply inline-flex items-center gap-2 font-mono text-xs uppercase tracking-wider text-brand-dark bg-brand-tint px-3 py-1 rounded-full;
+    @apply inline-flex items-center gap-2 font-mono text-xs uppercase tracking-wider text-brand-700 bg-brand-50 px-3 py-1 rounded-full;
   }
 
   .btn {
-    @apply inline-flex items-center justify-center gap-2 font-semibold px-6 py-3 rounded-card transition-colors text-sm;
+    @apply inline-flex items-center justify-center gap-2 font-semibold px-6 py-3 rounded-card transition-all text-sm;
   }
 
   .btn-primary {
-    @apply btn bg-brand text-white hover:bg-brand-dark;
+    @apply btn bg-brand text-white hover:bg-brand-600 shadow-sm hover:shadow;
   }
 
   .btn-secondary {
-    @apply btn border border-ink/15 text-ink hover:border-brand hover:text-brand-dark bg-white;
+    @apply btn border border-line text-ink bg-white hover:border-brand-300 hover:text-brand-700;
   }
 
   .btn-ghost {
     @apply btn text-muted hover:text-ink px-2;
   }
 
+  .btn-accent {
+    @apply btn bg-accent text-white hover:bg-accent-600 shadow-sm;
+  }
+
   .field-input {
-    @apply w-full border border-ink/15 rounded-card px-4 py-2.5 text-sm bg-white placeholder:text-muted/70 focus:outline-none focus:ring-2 focus:ring-brand focus:border-brand transition-colors;
+    @apply w-full border border-line rounded-card px-4 py-2.5 text-sm bg-white placeholder:text-muted/70 focus:outline-none focus:ring-2 focus:ring-brand-200 focus:border-brand transition-colors;
   }
 
   .pill {
@@ -98,7 +79,15 @@ body {
   }
 
   .card {
-    @apply bg-white border border-ink/10 rounded-card;
+    @apply bg-white border border-line rounded-card;
+  }
+
+  .card-hover {
+    @apply card transition-all duration-200 hover:shadow-hover hover:border-brand-200;
+  }
+
+  .stat-card {
+    @apply bg-white border border-line rounded-card p-5 transition-all duration-200 hover:shadow-card;
   }
 
   .table-clean thead {
@@ -114,10 +103,29 @@ body {
   }
 
   .table-clean tr + tr {
-    @apply border-t border-ink/10;
+    @apply border-t border-line;
   }
 
   .cursor-blink {
     animation: blink-caret 1s step-end infinite;
+  }
+
+  .section-eyebrow {
+    @apply font-mono text-xs uppercase tracking-wider text-brand-600;
+  }
+
+  .gradient-mesh {
+    background-image:
+      radial-gradient(at 20% 20%, theme('colors.brand.50') 0%, transparent 50%),
+      radial-gradient(at 80% 0%, theme('colors.accent.50') 0%, transparent 50%),
+      radial-gradient(at 40% 80%, theme('colors.mint.50') 0%, transparent 50%);
+  }
+
+  .hero-grid {
+    background-image:
+      linear-gradient(to right, theme('colors.line') 1px, transparent 1px),
+      linear-gradient(to bottom, theme('colors.line') 1px, transparent 1px);
+    background-size: 48px 48px;
+    mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black 40%, transparent 100%);
   }
 }

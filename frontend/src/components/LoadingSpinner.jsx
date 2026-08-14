@@ -16,13 +16,13 @@ export default function LoadingSpinner({
     lg: 'text-lg',
   };
 
-  const resolvedTextColor = textColor || (fullScreen ? 'text-white' : 'text-brand-dark');
+  const resolvedTextColor = textColor || (fullScreen ? 'text-white' : 'text-brand');
 
   return (
     <div
       className={
         fullScreen
-          ? 'fixed inset-0 bg-ink/60 backdrop-blur-sm flex items-center justify-center z-50'
+          ? 'fixed inset-0 bg-ink/50 backdrop-blur-sm flex items-center justify-center z-50'
           : 'flex items-center justify-center py-8'
       }
       role="status"
@@ -30,13 +30,11 @@ export default function LoadingSpinner({
     >
       <div className="flex flex-col items-center gap-4">
         <div className={`relative ${sizeMap[size] || sizeMap.lg}`}>
-          <div className="absolute inset-0 rounded-full border-4 border-current/20 opacity-60" />
+          <div className="absolute inset-0 rounded-full border-4 border-brand-100 opacity-60" />
           <div
-            className="absolute inset-0 rounded-full border-4 border-transparent border-t-current border-r-current animate-spin"
-            style={{
-              animationDuration: '1s',
-            }}
-          ></div>
+            className="absolute inset-0 rounded-full border-4 border-transparent border-t-brand border-r-brand animate-spin"
+            style={{ animationDuration: '0.8s' }}
+          />
         </div>
         <p className={`font-medium ${textSizeMap[size] || textSizeMap.lg} ${resolvedTextColor}`}>
           {label}

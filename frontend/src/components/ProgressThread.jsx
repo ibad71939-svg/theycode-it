@@ -7,22 +7,28 @@ export default function ProgressThread({ steps, currentIndex }) {
         <div key={step} className="flex items-center flex-1 last:flex-none">
           <div className="flex flex-col items-center">
             <div
-              className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-mono font-semibold border-2 transition-colors ${
+              className={`w-9 h-9 rounded-full flex items-center justify-center text-xs font-mono font-bold border-2 transition-all duration-300 ${
                 i <= currentIndex
-                  ? 'bg-brand border-brand text-white'
-                  : 'bg-white border-ink/15 text-muted'
+                  ? 'bg-brand border-brand text-white shadow-sm'
+                  : 'bg-white border-line text-muted'
               }`}
             >
-              {i + 1}
+              {i < currentIndex ? (
+                <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+                  <path fillRule="evenodd" d="M16.7 5.3a1 1 0 010 1.4l-7.5 7.5a1 1 0 01-1.4 0L3.3 9.7a1 1 0 011.4-1.4l3.8 3.8 6.8-6.8a1 1 0 011.4 0z" clipRule="evenodd" />
+                </svg>
+              ) : (
+                i + 1
+              )}
             </div>
-            <span className={`mt-2 text-xs text-center ${i <= currentIndex ? 'text-ink font-medium' : 'text-muted'}`}>
+            <span className={`mt-2 text-xs text-center font-medium ${i <= currentIndex ? 'text-ink' : 'text-muted'}`}>
               {step}
             </span>
           </div>
           {i < steps.length - 1 && (
-            <div className="flex-1 h-[2px] mx-2 mb-5 relative overflow-hidden bg-ink/10">
+            <div className="flex-1 h-[2px] mx-2 mb-5 relative overflow-hidden bg-line rounded-full">
               <div
-                className="absolute inset-y-0 left-0 bg-brand transition-all duration-500"
+                className="absolute inset-y-0 left-0 bg-brand transition-all duration-500 rounded-full"
                 style={{ width: i < currentIndex ? '100%' : '0%' }}
               />
             </div>

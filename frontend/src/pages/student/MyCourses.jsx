@@ -17,33 +17,39 @@ export default function MyCourses() {
   }, [token]);
 
   return (
-    <div>
-      <h1 className="font-display text-2xl font-semibold mb-6">My Courses</h1>
+    <div className="animate-fade-up">
+      <p className="section-eyebrow mb-2">Student Portal</p>
+      <h1 className="font-display text-2xl md:text-3xl font-bold mb-6">My Courses</h1>
       <div className="space-y-6">
         {enrollments.map((e) => (
-          <div key={e.id} className="bg-white border border-muted/10 rounded-card p-6">
-            <div className="flex justify-between items-start">
+          <div key={e.id} className="card p-6 hover:shadow-card transition-all">
+            <div className="flex justify-between items-start mb-5">
               <div>
                 <h3 className="font-display font-bold text-lg">{e.batch?.course?.title}</h3>
-                <p className="text-sm text-muted">Instructor: {e.batch?.instructor?.user?.name || 'TBA'}</p>
+                <p className="text-sm text-muted mt-1">Instructor: {e.batch?.instructor?.user?.name || 'TBA'}</p>
+                <p className="text-sm text-muted">{e.batch?.schedule}</p>
               </div>
-              {e.certificate && (
-                <a href={e.certificate.certificateUrl || '#'} className="text-sm font-semibold text-brand-dark bg-brand-tint px-3 py-1.5 rounded-card">
+              {e.certificate ? (
+                <a href={e.certificate.certificateUrl || '#'} className="btn-accent !py-2 !px-4 text-sm">
                   Download Certificate
                 </a>
+              ) : (
+                <span className={`pill ${
+                  e.status === 'APPROVED' || e.status === 'ACTIVE' ? 'bg-mint-50 text-mint-700' :
+                  e.status === 'REJECTED' ? 'bg-danger-50 text-danger' :
+                  'bg-warn-50 text-warn'
+                }`}>{e.status}</span>
               )}
             </div>
-            <div className="mt-5">
-              <ProgressThread steps={STAGE_STEPS} currentIndex={stageIndex(e.status)} />
-            </div>
+            <ProgressThread steps={STAGE_STEPS} currentIndex={stageIndex(e.status)} />
             <div className="grid sm:grid-cols-2 gap-4 mt-6 text-sm">
-              <div>
-                <p className="text-muted">Attendance sessions logged</p>
-                <p className="font-semibold">{e.attendance?.length || 0}</p>
+              <div className="bg-surface rounded-card p-3">
+                <p className="text-muted text-xs font-mono uppercase tracking-wide">Attendance sessions</p>
+                <p className="font-display font-bold text-lg mt-1">{e.attendance?.length || 0}</p>
               </div>
-              <div>
-                <p className="text-muted">Grades recorded</p>
-                <p className="font-semibold">{e.grades?.length || 0}</p>
+              <div className="bg-surface rounded-card p-3">
+                <p className="text-muted text-xs font-mono uppercase tracking-wide">Grades recorded</p>
+                <p className="font-display font-bold text-lg mt-1">{e.grades?.length || 0}</p>
               </div>
             </div>
           </div>

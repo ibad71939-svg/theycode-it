@@ -72,124 +72,128 @@ export default function Register() {
   }
 
   return (
-    <div className="max-w-xl mx-auto px-6 py-14">
-      <span className="w-10 h-10 rounded-md bg-ink text-mint font-mono text-sm font-semibold flex items-center justify-center mb-5">
-        &gt;_
-      </span>
-      <h1 className="font-display text-2xl md:text-3xl font-semibold mb-1">Create your student account</h1>
-      <p className="text-muted mb-8 text-sm">This information is used for your official enrollment record.</p>
-
-      <div className="card p-6">
-        <ProgressThread steps={STEPS} currentIndex={step} />
-
-        <div className="mt-8 space-y-4">
-          {step === 0 && (
-            <>
-              <Field label="Full name" required>
-                <input name="name" className={inputClass} value={form.name} onChange={set('name')} placeholder="As per your CNIC / ID card" />
-              </Field>
-              <Field label="Email" required>
-                <input name="email" type="email" className={inputClass} value={form.email} onChange={set('email')} placeholder="you@example.com" />
-              </Field>
-              <Field label="Phone number" required>
-                <input name="phone" className={inputClass} value={form.phone} onChange={set('phone')} placeholder="03XX-XXXXXXX" />
-              </Field>
-              <div className="grid grid-cols-2 gap-4">
-                <Field label="Password" required>
-                  <input name="password" type="password" className={inputClass} value={form.password} onChange={set('password')} placeholder="Min. 6 characters" />
-                </Field>
-                <Field label="Confirm password" required>
-                  <input name="confirmPassword" type="password" className={inputClass} value={form.confirmPassword} onChange={set('confirmPassword')} />
-                </Field>
-              </div>
-            </>
-          )}
-
-          {step === 1 && (
-            <>
-              <Field label="CNIC / ID number" required>
-                <input name="idNumber" className={inputClass} value={form.idNumber} onChange={set('idNumber')} placeholder="42101-0000000-1" />
-              </Field>
-              <div className="grid grid-cols-2 gap-4">
-                <Field label="Date of birth" required>
-                  <input name="dob" type="date" className={inputClass} value={form.dob} onChange={set('dob')} />
-                </Field>
-                <Field label="Gender">
-                  <select name="gender" className={inputClass} value={form.gender} onChange={set('gender')}>
-                    <option value="">Prefer not to say</option>
-                    <option>Female</option>
-                    <option>Male</option>
-                    <option>Other</option>
-                  </select>
-                </Field>
-              </div>
-              <Field label="Residential address" required>
-                <textarea name="address" rows={3} className={inputClass} value={form.address} onChange={set('address')} placeholder="House / street, area, city" />
-              </Field>
-            </>
-          )}
-
-          {step === 2 && (
-            <>
-              <p className="text-xs text-muted -mt-2 mb-2">Optional, but recommended for our records and in case of emergency.</p>
-              <Field label="Guardian / emergency contact name">
-                <input name="guardianName" className={inputClass} value={form.guardianName} onChange={set('guardianName')} placeholder="Full name" />
-              </Field>
-              <div className="grid grid-cols-2 gap-4">
-                <Field label="Relationship">
-                  <input name="guardianRelation" className={inputClass} value={form.guardianRelation} onChange={set('guardianRelation')} placeholder="Parent, sibling, spouse…" />
-                </Field>
-                <Field label="Guardian phone number">
-                  <input name="guardianPhone" className={inputClass} value={form.guardianPhone} onChange={set('guardianPhone')} placeholder="03XX-XXXXXXX" />
-                </Field>
-              </div>
-            </>
-          )}
-
-          {step === 3 && (
-            <div className="text-sm space-y-3">
-              <div className="border-b border-ink/10 pb-3">
-                <p className="font-mono text-[11px] font-semibold text-muted uppercase tracking-wide mb-2">Account</p>
-                <p>{form.name} · {form.email} · {form.phone}</p>
-              </div>
-              <div className="border-b border-ink/10 pb-3">
-                <p className="font-mono text-[11px] font-semibold text-muted uppercase tracking-wide mb-2">Personal details</p>
-                <p>ID: {form.idNumber} · DOB: {form.dob || '—'} · {form.gender || 'Not specified'}</p>
-                <p className="text-muted mt-1">{form.address}</p>
-              </div>
-              <div>
-                <p className="font-mono text-[11px] font-semibold text-muted uppercase tracking-wide mb-2">Guardian contact</p>
-                <p>{form.guardianName || '—'} {form.guardianRelation && `(${form.guardianRelation})`} {form.guardianPhone && `· ${form.guardianPhone}`}</p>
-              </div>
-            </div>
-          )}
-
-          {error && <p className="text-danger text-sm">{error}</p>}
+    <div className="min-h-[calc(100vh-4rem)] gradient-mesh px-4 py-12">
+      <div className="max-w-xl mx-auto">
+        <div className="text-center mb-8">
+          <span className="inline-flex w-12 h-12 rounded-xl bg-brand text-white font-mono text-base font-bold items-center justify-center mb-4">
+            TCI
+          </span>
+          <h1 className="font-display text-2xl md:text-3xl font-bold mb-1">Create your student account</h1>
+          <p className="text-muted text-sm">This information is used for your official enrollment record.</p>
         </div>
 
-        <div className="flex justify-between mt-8">
-          <button
-            onClick={back}
-            disabled={step === 0}
-            className="text-sm font-medium text-muted disabled:opacity-0 hover:text-ink"
-          >
-            ← Back
-          </button>
-          {step < STEPS.length - 1 ? (
-            <button onClick={next} className="btn-primary !py-2.5">
-              Continue
+        <div className="card p-7">
+          <ProgressThread steps={STEPS} currentIndex={step} />
+
+          <div className="mt-8 space-y-4">
+            {step === 0 && (
+              <>
+                <Field label="Full name" required>
+                  <input name="name" className={inputClass} value={form.name} onChange={set('name')} placeholder="As per your CNIC / ID card" />
+                </Field>
+                <Field label="Email" required>
+                  <input name="email" type="email" className={inputClass} value={form.email} onChange={set('email')} placeholder="you@example.com" />
+                </Field>
+                <Field label="Phone number" required>
+                  <input name="phone" className={inputClass} value={form.phone} onChange={set('phone')} placeholder="03XX-XXXXXXX" />
+                </Field>
+                <div className="grid grid-cols-2 gap-4">
+                  <Field label="Password" required>
+                    <input name="password" type="password" className={inputClass} value={form.password} onChange={set('password')} placeholder="Min. 6 characters" />
+                  </Field>
+                  <Field label="Confirm password" required>
+                    <input name="confirmPassword" type="password" className={inputClass} value={form.confirmPassword} onChange={set('confirmPassword')} />
+                  </Field>
+                </div>
+              </>
+            )}
+
+            {step === 1 && (
+              <>
+                <Field label="CNIC / ID number" required>
+                  <input name="idNumber" className={inputClass} value={form.idNumber} onChange={set('idNumber')} placeholder="42101-0000000-1" />
+                </Field>
+                <div className="grid grid-cols-2 gap-4">
+                  <Field label="Date of birth" required>
+                    <input name="dob" type="date" className={inputClass} value={form.dob} onChange={set('dob')} />
+                  </Field>
+                  <Field label="Gender">
+                    <select name="gender" className={inputClass} value={form.gender} onChange={set('gender')}>
+                      <option value="">Prefer not to say</option>
+                      <option>Female</option>
+                      <option>Male</option>
+                      <option>Other</option>
+                    </select>
+                  </Field>
+                </div>
+                <Field label="Residential address" required>
+                  <textarea name="address" rows={3} className={inputClass} value={form.address} onChange={set('address')} placeholder="House / street, area, city" />
+                </Field>
+              </>
+            )}
+
+            {step === 2 && (
+              <>
+                <p className="text-xs text-muted -mt-2 mb-2">Optional, but recommended for our records and in case of emergency.</p>
+                <Field label="Guardian / emergency contact name">
+                  <input name="guardianName" className={inputClass} value={form.guardianName} onChange={set('guardianName')} placeholder="Full name" />
+                </Field>
+                <div className="grid grid-cols-2 gap-4">
+                  <Field label="Relationship">
+                    <input name="guardianRelation" className={inputClass} value={form.guardianRelation} onChange={set('guardianRelation')} placeholder="Parent, sibling, spouse…" />
+                  </Field>
+                  <Field label="Guardian phone number">
+                    <input name="guardianPhone" className={inputClass} value={form.guardianPhone} onChange={set('guardianPhone')} placeholder="03XX-XXXXXXX" />
+                  </Field>
+                </div>
+              </>
+            )}
+
+            {step === 3 && (
+              <div className="text-sm space-y-3">
+                <div className="border-b border-line pb-3">
+                  <p className="font-mono text-[11px] font-semibold text-muted uppercase tracking-wide mb-2">Account</p>
+                  <p>{form.name} · {form.email} · {form.phone}</p>
+                </div>
+                <div className="border-b border-line pb-3">
+                  <p className="font-mono text-[11px] font-semibold text-muted uppercase tracking-wide mb-2">Personal details</p>
+                  <p>ID: {form.idNumber} · DOB: {form.dob || '—'} · {form.gender || 'Not specified'}</p>
+                  <p className="text-muted mt-1">{form.address}</p>
+                </div>
+                <div>
+                  <p className="font-mono text-[11px] font-semibold text-muted uppercase tracking-wide mb-2">Guardian contact</p>
+                  <p>{form.guardianName || '—'} {form.guardianRelation && `(${form.guardianRelation})`} {form.guardianPhone && `· ${form.guardianPhone}`}</p>
+                </div>
+              </div>
+            )}
+
+            {error && <p className="text-danger text-sm bg-danger-50 px-3 py-2 rounded-lg">{error}</p>}
+          </div>
+
+          <div className="flex justify-between mt-8">
+            <button
+              onClick={back}
+              disabled={step === 0}
+              className="text-sm font-medium text-muted disabled:opacity-0 hover:text-ink"
+            >
+              ← Back
             </button>
-          ) : (
-            <button onClick={handleSubmit} className="btn-primary !py-2.5">
-              Create Account
-            </button>
-          )}
+            {step < STEPS.length - 1 ? (
+              <button onClick={next} className="btn-primary !py-2.5">
+                Continue
+              </button>
+            ) : (
+              <button onClick={handleSubmit} className="btn-primary !py-2.5">
+                Create Account
+              </button>
+            )}
+          </div>
         </div>
+
+        <p className="text-sm text-muted mt-5 text-center">
+          Already have an account? <Link to="/login" className="text-brand-700 font-semibold">Login</Link>
+        </p>
       </div>
-
-      <p className="text-sm text-muted mt-4 text-center">
-        Already have an account? <Link to="/login" className="text-brand-dark font-medium">Login</Link>
-      </p>
     </div>
   );
 }
