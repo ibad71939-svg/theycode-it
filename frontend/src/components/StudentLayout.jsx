@@ -17,7 +17,7 @@ const links = [
 
 export default function StudentLayout() {
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 grid md:grid-cols-[240px_1fr] gap-8">
+    <div className="w-full px-4 sm:px-6 lg:px-10 py-8 grid md:grid-cols-[240px_1fr] gap-8">
       <aside className="md:sticky md:top-20 md:self-start">
         <div className="card p-4">
           <p className="font-mono text-[11px] uppercase tracking-wider text-muted px-2 mb-3">Student Portal</p>
