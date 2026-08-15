@@ -76,9 +76,6 @@ export default function Login() {
             <>Already have an account? <Link to="/login" className="text-brand-700 font-semibold">Login</Link></>
           )}
         </p>
-        <p className="text-xs text-muted mt-6 text-center font-mono">
-          demo — admin@theycodeit.com / Passw0rd! · student@theycodeit.com / Passw0rd!
-        </p>
         <Link to="/" className="block text-center text-xs text-muted mt-3 hover:text-brand-700">← Back to home</Link>
       </div>
     </div>
