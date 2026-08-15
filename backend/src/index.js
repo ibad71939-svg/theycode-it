@@ -1,8 +1,4 @@
 require('dotenv').config();
-
-// Must be required before any routers that use async handlers.
-// Patches Express so rejected promises inside async route handlers
-// are forwarded to the error-handling middleware.
 require('express-async-errors');
 
 const express = require('express');
@@ -20,32 +16,19 @@ const adminRoutes = require('./routes/admin');
 const app = express();
 
 /* =========================================================
-   SECURITY HEADERS
-========================================================= */
-
-app.use(
-  helmet({
-    contentSecurityPolicy: false,
-  })
-);
-
-/* =========================================================
    CORS
 ========================================================= */
 
 const allowedOrigins = [
   'https://www.theycodeit.com',
   'https://theycodeit.com',
-
-  // Local development
   'http://localhost:5173',
   'http://localhost:3000',
 ];
 
 const corsOptions = {
   origin: function (origin, callback) {
-    // Allow requests without an Origin header
-    // such as Postman or server-to-server requests.
+    // Allow requests with no Origin header
     if (!origin) {
       return callback(null, true);
     }
@@ -54,21 +37,14 @@ const corsOptions = {
       return callback(null, true);
     }
 
-    console.warn(`CORS blocked origin: ${origin}`);
+    console.log('CORS blocked:', origin);
 
     return callback(new Error('Not allowed by CORS'));
   },
 
   credentials: true,
 
-  methods: [
-    'GET',
-    'POST',
-    'PUT',
-    'PATCH',
-    'DELETE',
-    'OPTIONS',
-  ],
+  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
 
   allowedHeaders: [
     'Content-Type',
@@ -78,11 +54,49 @@ const corsOptions = {
   optionsSuccessStatus: 204,
 };
 
-// Normal requests
+/*
+ * CORS MUST come before rate limiting and routes.
+ */
 app.use(cors(corsOptions));
 
-// Explicitly handle browser preflight requests
-app.options('*', cors(corsOptions));
+/*
+ * Explicit preflight handler.
+ */
+app.use((req, res, next) => {
+  if (req.method === 'OPTIONS') {
+    const origin = req.headers.origin;
+
+    if (allowedOrigins.includes(origin)) {
+      res.header('Access-Control-Allow-Origin', origin);
+      res.header('Access-Control-Allow-Credentials', 'true');
+      res.header(
+        'Access-Control-Allow-Methods',
+        'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS'
+      );
+      res.header(
+        'Access-Control-Allow-Headers',
+        'Content-Type, Authorization'
+      );
+      res.header('Access-Control-Max-Age', '86400');
+
+      return res.sendStatus(204);
+    }
+
+    return res.sendStatus(403);
+  }
+
+  next();
+});
+
+/* =========================================================
+   SECURITY HEADERS
+========================================================= */
+
+app.use(
+  helmet({
+    contentSecurityPolicy: false,
+  })
+);
 
 /* =========================================================
    BODY PARSER
@@ -117,8 +131,6 @@ const loginLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
 
-  // Keyed by IP + attempted email.
-  // ipKeyGenerator() normalizes IPv6 addresses.
   keyGenerator: (req) =>
     `${ipKeyGenerator(req.ip)}:${(
       req.body?.email || ''
@@ -144,7 +156,7 @@ app.get('/api/health', (req, res) => {
 });
 
 /* =========================================================
-   API ROUTES
+   ROUTES
 ========================================================= */
 
 app.use('/api/auth', authRoutes);
@@ -154,7 +166,7 @@ app.use('/api/student', studentRoutes);
 app.use('/api/admin', adminRoutes);
 
 /* =========================================================
-   404 HANDLER
+   404
 ========================================================= */
 
 app.use((req, res) => {
@@ -168,9 +180,8 @@ app.use((req, res) => {
 ========================================================= */
 
 app.use((err, req, res, next) => {
-  console.error(err);
+  console.error('Server error:', err);
 
-  // Handle CORS errors cleanly
   if (err.message === 'Not allowed by CORS') {
     return res.status(403).json({
       error: 'CORS origin not allowed',
@@ -183,7 +194,7 @@ app.use((err, req, res, next) => {
 });
 
 /* =========================================================
-   PROCESS ERROR HANDLING
+   UNHANDLED REJECTION
 ========================================================= */
 
 process.on('unhandledRejection', (err) => {
