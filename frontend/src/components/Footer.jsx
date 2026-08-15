@@ -6,11 +6,8 @@ export default function Footer() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-14 grid sm:grid-cols-2 md:grid-cols-4 gap-10">
         <div className="md:col-span-1">
           <div className="flex items-center gap-2.5 mb-4">
-            <span className="w-9 h-9 rounded-xl bg-white/10 text-white font-mono text-sm font-bold flex items-center justify-center">
-              TCI
-            </span>
             <span className="font-display font-bold text-white text-lg">
-              They Code It
+              They <span style={{ color: 'rgb(5, 165, 140)' }}>Code</span> It
             </span>
           </div>
 
