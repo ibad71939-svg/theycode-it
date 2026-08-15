@@ -22,8 +22,17 @@ async function request(path, { method = 'GET', body, token, silent = false } = {
       },
       body: body ? JSON.stringify(body) : undefined,
     });
-    const data = res.status === 204 ? null : await res.json().catch(() => null);
+    // A 204 legitimately has no body. Anything else that fails to parse as
+    // JSON despite a 2xx status is NOT a legitimate empty response — it
+    // usually means the request didn't actually reach the API (e.g.
+    // VITE_API_URL pointing at the wrong host, or a platform rewrite
+    // serving the frontend's own index.html for an unmatched path). Treat
+    // that as an error instead of silently resolving to null, so it surfaces
+    // as a visible failure instead of a null crashing whatever called this.
+    let parseFailed = false;
+    const data = res.status === 204 ? null : await res.json().catch(() => { parseFailed = true; return null; });
     if (!res.ok) throw new Error((data && data.error) || 'Request failed');
+    if (parseFailed) throw new Error(`Expected JSON from ${path} but got something else — check VITE_API_URL.`);
     return data;
   } finally {
     if (!silent) onRequestEnd();
@@ -46,8 +55,10 @@ export const api = {
         headers: token ? { Authorization: `Bearer ${token}` } : undefined,
         body: formData,
       });
-      const data = res.status === 204 ? null : await res.json().catch(() => null);
+      let parseFailed = false;
+      const data = res.status === 204 ? null : await res.json().catch(() => { parseFailed = true; return null; });
       if (!res.ok) throw new Error((data && data.error) || 'Upload failed');
+      if (parseFailed) throw new Error(`Expected JSON from ${path} but got something else — check VITE_API_URL.`);
       return data;
     } finally {
       if (!opts.silent) onRequestEnd();

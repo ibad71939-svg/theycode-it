@@ -46,7 +46,10 @@ export default function Home() {
   const [loadingCourses, setLoadingCourses] = useState(true);
 
   useEffect(() => {
-    api.get('/courses').then(setCourses).catch(() => {}).finally(() => setLoadingCourses(false));
+    api.get('/courses')
+      .then((result) => setCourses(Array.isArray(result) ? result : []))
+      .catch(() => {})
+      .finally(() => setLoadingCourses(false));
   }, []);
 
   return (
