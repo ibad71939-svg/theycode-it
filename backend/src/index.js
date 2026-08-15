@@ -1,10 +1,10 @@
 require('dotenv').config();
-// Must be required before any routers that use async handlers: patches
-// Express so a rejected promise inside an `async (req, res) => {}` route is
-// forwarded to the error-handling middleware below instead of crashing the
-// whole process. Without this, a single Supabase hiccup in a route with no
-// try/catch (courses.js, enrollments.js) takes down every connected user.
+
+// Must be required before any routers that use async handlers.
+// Patches Express so rejected promises inside async route handlers
+// are forwarded to the error-handling middleware.
 require('express-async-errors');
+
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
@@ -19,45 +19,133 @@ const adminRoutes = require('./routes/admin');
 
 const app = express();
 
-// Sets standard security headers (X-Content-Type-Options, HSTS, disables
-// X-Powered-By, etc). contentSecurityPolicy is off because this is a pure
-// JSON API with no HTML views of its own to lock down — the frontend is a
-// separate app and sets its own CSP.
-app.use(helmet({ contentSecurityPolicy: false }));
-app.use(cors());
+/* =========================================================
+   SECURITY HEADERS
+========================================================= */
+
+app.use(
+  helmet({
+    contentSecurityPolicy: false,
+  })
+);
+
+/* =========================================================
+   CORS
+========================================================= */
+
+const allowedOrigins = [
+  'https://www.theycodeit.com',
+  'https://theycodeit.com',
+
+  // Local development
+  'http://localhost:5173',
+  'http://localhost:3000',
+];
+
+const corsOptions = {
+  origin: function (origin, callback) {
+    // Allow requests without an Origin header
+    // such as Postman or server-to-server requests.
+    if (!origin) {
+      return callback(null, true);
+    }
+
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+
+    console.warn(`CORS blocked origin: ${origin}`);
+
+    return callback(new Error('Not allowed by CORS'));
+  },
+
+  credentials: true,
+
+  methods: [
+    'GET',
+    'POST',
+    'PUT',
+    'PATCH',
+    'DELETE',
+    'OPTIONS',
+  ],
+
+  allowedHeaders: [
+    'Content-Type',
+    'Authorization',
+  ],
+
+  optionsSuccessStatus: 204,
+};
+
+// Normal requests
+app.use(cors(corsOptions));
+
+// Explicitly handle browser preflight requests
+app.options('*', cors(corsOptions));
+
+/* =========================================================
+   BODY PARSER
+========================================================= */
+
 app.use(express.json());
 
-// General API-wide limiter: generous, just there to blunt scripted abuse
-// and accidental retry storms.
-app.use('/api', rateLimit({
-  windowMs: 15 * 60 * 1000,
-  limit: 300,
-  standardHeaders: true,
-  legacyHeaders: false,
-  message: { error: 'Too many requests, please try again later.' },
-}));
+/* =========================================================
+   GENERAL API RATE LIMITER
+========================================================= */
 
-// Tighter limiter specifically on login: this is the endpoint an attacker
-// would actually brute-force, so it gets a much lower ceiling than the
-// general API limit above. Keyed by IP + attempted email so one bad actor
-// can't lock out other users sharing the same IP (e.g. an office NAT).
+app.use(
+  '/api',
+  rateLimit({
+    windowMs: 15 * 60 * 1000,
+    limit: 300,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: {
+      error: 'Too many requests, please try again later.',
+    },
+  })
+);
+
+/* =========================================================
+   LOGIN RATE LIMITER
+========================================================= */
+
 const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   limit: 10,
   standardHeaders: true,
   legacyHeaders: false,
-  // Keyed by IP + attempted email so one bad actor can't lock out other
-  // users sharing the same IP (e.g. an office NAT). ipKeyGenerator() is
-  // required here (rather than raw req.ip) because it normalizes IPv6
-  // addresses down to a /56 subnet — without it, an attacker on IPv6 could
-  // get a fresh rate-limit bucket on every request just by varying the
-  // last few bits of their address.
-  keyGenerator: (req) => `${ipKeyGenerator(req.ip)}:${(req.body?.email || '').toLowerCase()}`,
-  message: { error: 'Too many login attempts. Please wait a few minutes and try again.' },
+
+  // Keyed by IP + attempted email.
+  // ipKeyGenerator() normalizes IPv6 addresses.
+  keyGenerator: (req) =>
+    `${ipKeyGenerator(req.ip)}:${(
+      req.body?.email || ''
+    ).toLowerCase()}`,
+
+  message: {
+    error:
+      'Too many login attempts. Please wait a few minutes and try again.',
+  },
 });
+
 app.use('/api/auth/login', loginLimiter);
 
-app.get('/api/health', (req, res) => res.json({ ok: true, service: 'they-code-it-api' }));
+/* =========================================================
+   HEALTH CHECK
+========================================================= */
+
+app.get('/api/health', (req, res) => {
+  res.json({
+    ok: true,
+    service: 'they-code-it-api',
+  });
+});
+
+/* =========================================================
+   API ROUTES
+========================================================= */
 
 app.use('/api/auth', authRoutes);
 app.use('/api/courses', courseRoutes);
@@ -65,19 +153,49 @@ app.use('/api/enrollments', enrollmentRoutes);
 app.use('/api/student', studentRoutes);
 app.use('/api/admin', adminRoutes);
 
-app.use((req, res) => res.status(404).json({ error: 'Not found' }));
-app.use((err, req, res, next) => {
-  console.error(err);
-  res.status(500).json({ error: 'Internal server error' });
+/* =========================================================
+   404 HANDLER
+========================================================= */
+
+app.use((req, res) => {
+  res.status(404).json({
+    error: 'Not found',
+  });
 });
 
-// Backstop: express-async-errors covers rejections thrown from inside route
-// handlers, but this catches anything else that slips through (e.g. a
-// rejection from code running outside the request/response cycle) so the
-// process logs it instead of dying silently.
+/* =========================================================
+   ERROR HANDLER
+========================================================= */
+
+app.use((err, req, res, next) => {
+  console.error(err);
+
+  // Handle CORS errors cleanly
+  if (err.message === 'Not allowed by CORS') {
+    return res.status(403).json({
+      error: 'CORS origin not allowed',
+    });
+  }
+
+  res.status(500).json({
+    error: 'Internal server error',
+  });
+});
+
+/* =========================================================
+   PROCESS ERROR HANDLING
+========================================================= */
+
 process.on('unhandledRejection', (err) => {
   console.error('Unhandled rejection:', err);
 });
 
+/* =========================================================
+   SERVER
+========================================================= */
+
 const PORT = process.env.PORT || 4000;
-app.listen(PORT, () => console.log(`They Code It API running on port ${PORT}`));
+
+app.listen(PORT, () => {
+  console.log(`They Code It API running on port ${PORT}`);
+});
