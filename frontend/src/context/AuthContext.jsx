@@ -5,18 +5,32 @@ import { supabase } from '../lib/supabase';
 // Use Supabase auth where available. Do not write application-level localStorage
 // keys; rely on Supabase client for session persistence and fall back to the
 // backend endpoints when Supabase isn't configured.
+//
+// SECURITY: `role` is never read from the Supabase session's user_metadata
+// here. That field is client-writable by anyone with the public anon key
+// (supabase.auth.signUp/updateUser both accept arbitrary metadata from the
+// browser console), so trusting it for UI/routing would let someone display
+// admin navigation for themselves just by claiming a role at signup. Instead,
+// after every sign-in event we call GET /api/auth/me, which returns the role
+// as sourced from the backend's own `users` table — the only place role is
+// actually authoritative.
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
   const [token, setToken] = useState(null);
   const [user, setUser] = useState(null);
   const [isInitializing, setIsInitializing] = useState(true);
-  // While register() is mid-flight, supabase.auth.signUp() creates a real
-  // session and fires onAuthStateChange on its own — before we've confirmed
-  // the users/students profile rows actually got created. This flag stops
-  // that listener from logging the user in early off the back of a
-  // half-finished signup; register() manages token/user itself instead.
   const registeringRef = useRef(false);
+
+  async function loadTrustedProfile(accessToken) {
+    try {
+      const { user: profile } = await api.get('/auth/me', accessToken);
+      return profile;
+    } catch (e) {
+      console.error('Could not load trusted profile:', e.message);
+      return null;
+    }
+  }
 
   useEffect(() => {
     let mounted = true;
@@ -29,19 +43,26 @@ export function AuthProvider({ children }) {
       const { data } = await supabase.auth.getSession();
       const session = data?.session || null;
       if (session && mounted) {
-        const u = session.user;
-        setToken(session.access_token);
-        setUser({ id: u.id, email: u.email, name: u.user_metadata?.name || u.email, role: u.user_metadata?.role || 'STUDENT' });
+        const profile = await loadTrustedProfile(session.access_token);
+        if (mounted && profile) {
+          setToken(session.access_token);
+          setUser(profile);
+        }
       }
       if (mounted) setIsInitializing(false);
     })();
 
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: sub } = supabase.auth.onAuthStateChange(async (_event, session) => {
       if (registeringRef.current) return;
       if (session && session.user) {
-        const u = session.user;
-        setToken(session.access_token);
-        setUser({ id: u.id, email: u.email, name: u.user_metadata?.name || u.email, role: u.user_metadata?.role || 'STUDENT' });
+        const profile = await loadTrustedProfile(session.access_token);
+        if (profile) {
+          setToken(session.access_token);
+          setUser(profile);
+        } else {
+          setToken(null);
+          setUser(null);
+        }
       } else {
         setToken(null);
         setUser(null);
@@ -59,11 +80,11 @@ export function AuthProvider({ children }) {
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
       const session = data.session;
-      const user = data.user;
-      const nextUser = { id: user.id, email: user.email, name: user.user_metadata?.name || user.email, role: user.user_metadata?.role || 'STUDENT' };
+      const profile = await loadTrustedProfile(session.access_token);
+      if (!profile) throw new Error('Could not load your account profile. Please try again.');
       setToken(session.access_token);
-      setUser(nextUser);
-      return nextUser;
+      setUser(profile);
+      return profile;
     }
 
     const data = await api.post('/auth/login', { email, password });
@@ -78,34 +99,31 @@ export function AuthProvider({ children }) {
 
     registeringRef.current = true;
     try {
-      // 1. Create the actual Supabase Auth identity from the browser — the
-      //    same call the login page uses, so both paths agree on how the
-      //    account exists.
+      // 1. Create the actual Supabase Auth identity from the browser. Note:
+      //    the `role: 'STUDENT'` claimed here in metadata is NEVER trusted
+      //    by the backend for authorization — it's purely descriptive. Real
+      //    role assignment happens server-side in POST /api/auth/register.
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
-        options: { data: { name, phone, role: 'STUDENT' } },
+        options: { data: { name, phone } },
       });
       if (error) throw error;
 
-      // If the Supabase project requires email confirmation, there's no
-      // session yet — the account exists but can't be used until confirmed.
       if (!data.session) {
         throw new Error('Account created — check your email to confirm it before logging in.');
       }
 
       // 2. Create the matching users/students profile rows via the backend,
-      //    authenticated with the session we just got back.
+      //    authenticated with the session we just got back. The backend
+      //    hardcodes role STUDENT here regardless of anything the client
+      //    sends.
       try {
         const result = await api.post('/auth/register', profileFields, data.session.access_token);
         setToken(data.session.access_token);
         setUser(result.user);
         return result.user;
       } catch (profileErr) {
-        // The auth identity exists but the profile step failed. Sign the
-        // half-created session back out so the app doesn't treat this
-        // account as logged in — otherwise reloading the page would trigger
-        // the exact same "no student profile" 404 on the dashboard.
         await supabase.auth.signOut().catch(() => {});
         throw new Error(profileErr.message || 'Account created, but saving your details failed. Please try again.');
       }
@@ -134,4 +152,3 @@ export function useAuth() {
 }
 
 export { AuthContext };
-

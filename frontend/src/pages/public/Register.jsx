@@ -10,7 +10,21 @@ const initialForm = {
   name: '', email: '', phone: '', password: '', confirmPassword: '',
   idNumber: '', dob: '', gender: '', address: '',
   guardianName: '', guardianPhone: '', guardianRelation: '',
+  consentAccepted: false,
 };
+
+// Kept in sync with frontend/src/pages/public/ResetPassword.jsx's
+// validatePassword(). 6 characters was too weak for accounts holding
+// CNIC/ID numbers and payment history — bumped to 8+ with a letter and a
+// number. This is enforced client-side only (the raw password never
+// reaches our backend — see AuthContext.register(), which calls Supabase
+// Auth's signUp() directly), so if you ever add another entry point for
+// creating accounts, re-apply this same check there.
+function validatePassword(pw) {
+  if (pw.length < 8) return 'Password must be at least 8 characters.';
+  if (!/[a-zA-Z]/.test(pw) || !/[0-9]/.test(pw)) return 'Password must include at least one letter and one number.';
+  return '';
+}
 
 function Field({ label, children, required }) {
   return (
@@ -22,6 +36,7 @@ function Field({ label, children, required }) {
 }
 
 const inputClass = 'field-input';
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export default function Register() {
   const [step, setStep] = useState(0);
@@ -39,11 +54,16 @@ export default function Register() {
     setError('');
     if (step === 0) {
       if (!form.name || !form.email || !form.phone || !form.password) return 'Please fill in all required fields.';
-      if (form.password.length < 6) return 'Password must be at least 6 characters.';
+      if (!EMAIL_RE.test(form.email)) return 'Please enter a valid email address.';
+      const pwErr = validatePassword(form.password);
+      if (pwErr) return pwErr;
       if (form.password !== form.confirmPassword) return 'Passwords do not match.';
     }
     if (step === 1) {
       if (!form.idNumber || !form.dob || !form.address) return 'Please fill in all required fields.';
+    }
+    if (step === 3) {
+      if (!form.consentAccepted) return 'Please accept the Terms & Privacy Policy to continue.';
     }
     return '';
   }
@@ -60,6 +80,8 @@ export default function Register() {
   }
 
   async function handleSubmit() {
+    const err = validateStep();
+    if (err) { setError(err); return; }
     setError('');
     try {
       const { confirmPassword, ...payload } = form;
@@ -97,9 +119,9 @@ export default function Register() {
                 <Field label="Phone number" required>
                   <input name="phone" className={inputClass} value={form.phone} onChange={set('phone')} placeholder="03XX-XXXXXXX" />
                 </Field>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid sm:grid-cols-2 gap-4">
                   <Field label="Password" required>
-                    <input name="password" type="password" className={inputClass} value={form.password} onChange={set('password')} placeholder="Min. 6 characters" />
+                    <input name="password" type="password" className={inputClass} value={form.password} onChange={set('password')} placeholder="Min. 8 chars, 1 letter, 1 number" />
                   </Field>
                   <Field label="Confirm password" required>
                     <input name="confirmPassword" type="password" className={inputClass} value={form.confirmPassword} onChange={set('confirmPassword')} />
@@ -113,7 +135,7 @@ export default function Register() {
                 <Field label="CNIC / ID number" required>
                   <input name="idNumber" className={inputClass} value={form.idNumber} onChange={set('idNumber')} placeholder="42101-0000000-1" />
                 </Field>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid sm:grid-cols-2 gap-4">
                   <Field label="Date of birth" required>
                     <input name="dob" type="date" className={inputClass} value={form.dob} onChange={set('dob')} />
                   </Field>
@@ -138,7 +160,7 @@ export default function Register() {
                 <Field label="Guardian / emergency contact name">
                   <input name="guardianName" className={inputClass} value={form.guardianName} onChange={set('guardianName')} placeholder="Full name" />
                 </Field>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid sm:grid-cols-2 gap-4">
                   <Field label="Relationship">
                     <input name="guardianRelation" className={inputClass} value={form.guardianRelation} onChange={set('guardianRelation')} placeholder="Parent, sibling, spouse…" />
                   </Field>
@@ -164,6 +186,18 @@ export default function Register() {
                   <p className="font-mono text-[11px] font-semibold text-muted uppercase tracking-wide mb-2">Guardian contact</p>
                   <p>{form.guardianName || '—'} {form.guardianRelation && `(${form.guardianRelation})`} {form.guardianPhone && `· ${form.guardianPhone}`}</p>
                 </div>
+                <label className="flex items-start gap-2.5 pt-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    className="mt-0.5 w-4 h-4 rounded border-line accent-brand"
+                    checked={form.consentAccepted}
+                    onChange={(e) => setForm({ ...form, consentAccepted: e.target.checked })}
+                  />
+                  <span className="text-xs text-muted leading-relaxed">
+                    I agree to the <Link to="/terms" target="_blank" className="text-brand-700 font-semibold hover:underline">Terms & Privacy Policy</Link>,
+                    including how my personal information (and my guardian's, if provided) is collected and used.
+                  </span>
+                </label>
               </div>
             )}
 
@@ -183,7 +217,7 @@ export default function Register() {
                 Continue
               </button>
             ) : (
-              <button onClick={handleSubmit} className="btn-primary !py-2.5">
+              <button onClick={handleSubmit} disabled={!form.consentAccepted} className="btn-primary !py-2.5 disabled:opacity-50">
                 Create Account
               </button>
             )}

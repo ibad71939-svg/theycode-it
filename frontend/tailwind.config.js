@@ -72,15 +72,54 @@ export default {
           700: '#841515',
           800: '#580D0D',
         },
+        success: {
+          50: '#E9F9EF',
+          100: '#CBF1D8',
+          200: '#98E3B3',
+          300: '#65D08C',
+          400: '#3CB86C',
+          DEFAULT: '#1F9D56',
+          500: '#1F9D56',
+          600: '#187E44',
+          700: '#125F34',
+          800: '#0B4023',
+        },
         ink: '#000001',
         muted: '#262626',
         surface: '#FFFFFF',
         line: '#E5E5E5',
+        /* Neutral text scale — reduces reliance on `muted` at arbitrary
+           opacities so secondary/tertiary copy stays consistent everywhere. */
+        neutral: {
+          50: '#F7F7F7',
+          100: '#EEEEEE',
+          200: '#DDDDDD',
+          300: '#BFBFBF',
+          400: '#8F8F8F',
+          500: '#6B6B6B',
+          600: '#4A4A4A',
+          700: '#333333',
+        },
       },
       fontFamily: {
         display: ['"Space Grotesk"', 'sans-serif'],
         body: ['Inter', 'sans-serif'],
         mono: ['"JetBrains Mono"', 'monospace'],
+      },
+      /* Deliberate type scale (12/13/14/16/18/20/24/30/38/48) with matched
+         line-heights, so headings no longer jump straight from 2xl to 4xl
+         and body copy has a real hierarchy between dashboard/table/prose use. */
+      fontSize: {
+        xs: ['0.75rem', { lineHeight: '1.4' }],
+        sm: ['0.8125rem', { lineHeight: '1.5' }],
+        base: ['0.875rem', { lineHeight: '1.6' }],
+        md: ['1rem', { lineHeight: '1.6' }],
+        lg: ['1.125rem', { lineHeight: '1.5' }],
+        xl: ['1.25rem', { lineHeight: '1.4' }],
+        '2xl': ['1.5rem', { lineHeight: '1.3' }],
+        '3xl': ['1.875rem', { lineHeight: '1.25' }],
+        '4xl': ['2.375rem', { lineHeight: '1.15' }],
+        '5xl': ['3rem', { lineHeight: '1.08' }],
       },
       borderRadius: {
         card: '12px',
@@ -88,10 +127,17 @@ export default {
         editor: '12px',
         xl2: '20px',
       },
+      /* Tiered elevation: xs/sm for resting surfaces, md/lg reserved for
+         genuinely elevated things (modals, popovers, dragged items) so
+         importance is legible instead of every card using one shadow. */
       boxShadow: {
+        xs: '0 1px 2px rgba(0,0,1,0.05)',
+        sm: '0 1px 2px rgba(0,0,1,0.04), 0 4px 10px -6px rgba(0,0,1,0.10)',
         editor: '0 1px 2px rgba(0,0,1,0.04), 0 12px 32px -16px rgba(0,0,1,0.18)',
-        card: '0 1px 3px rgba(0,0,1,0.06), 0 8px 24px -12px rgba(0,0,1,0.12)',
+        card: '0 1px 3px rgba(0,0,1,0.05), 0 8px 20px -12px rgba(0,0,1,0.10)',
+        md: '0 2px 6px rgba(0,0,1,0.06), 0 12px 28px -12px rgba(0,0,1,0.14)',
         hover: '0 4px 12px rgba(0,0,1,0.08), 0 24px 48px -16px rgba(0,0,1,0.20)',
+        lg: '0 8px 20px rgba(0,0,1,0.10), 0 32px 64px -20px rgba(0,0,1,0.28)',
       },
       keyframes: {
         'fade-up': {
@@ -106,11 +152,16 @@ export default {
           '0%': { opacity: '0', transform: 'scale(0.96)' },
           '100%': { opacity: '1', transform: 'scale(1)' },
         },
+        shimmer: {
+          '0%': { backgroundPosition: '-400px 0' },
+          '100%': { backgroundPosition: '400px 0' },
+        },
       },
       animation: {
-        'fade-up': 'fade-up 0.4s ease-out',
-        'fade-in': 'fade-in 0.3s ease-out',
-        'scale-in': 'scale-in 0.2s ease-out',
+        'fade-up': 'fade-up 0.4s ease-out both',
+        'fade-in': 'fade-in 0.3s ease-out both',
+        'scale-in': 'scale-in 0.2s ease-out both',
+        shimmer: 'shimmer 1.6s ease-in-out infinite',
       },
     },
   },

@@ -1,46 +1,34 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { GraduationCap, Users, ShieldCheck, ListChecks, ArrowRight } from 'lucide-react';
 import { api } from '../../lib/api';
 import ProgressThread from '../../components/ProgressThread';
-import LoadingSpinner from '../../components/LoadingSpinner';
+import CourseCard from '../../components/CourseCard';
+import FeatureCard from '../../components/FeatureCard';
+import { SkeletonCardGrid } from '../../components/Skeleton';
 
 const HERO_IMG = 'https://images.pexels.com/photos/5530437/pexels-photo-5530437.jpeg?auto=compress&cs=tinysrgb&h=650&w=940';
 
+const iconProps = { className: 'w-6 h-6', strokeWidth: 1.8 };
+
 const FEATURES = [
   {
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="w-6 h-6">
-        <path d="M12 14l9-5-9-5-9 5 9 5z" strokeLinejoin="round" />
-        <path d="M12 14l6.16-3.42a12 12 0 01.34 5.84L12 20l-6.5-3.58a12 12 0 01.34-5.84L12 14z" strokeLinejoin="round" />
-      </svg>
-    ),
+    icon: <GraduationCap {...iconProps} />,
     title: 'Cohort-Based Learning',
     desc: 'Learn in structured batches with peers, not alone. Real schedules, real deadlines, real progress.',
   },
   {
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="w-6 h-6">
-        <path d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m6-1.13a4 4 0 100-8 4 4 0 000 8z" strokeLinecap="round" strokeLinejoin="round" />
-      </svg>
-    ),
+    icon: <Users {...iconProps} />,
     title: 'Real Instructors',
     desc: 'Every batch is led by an experienced instructor who reviews your work and answers your questions.',
   },
   {
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="w-6 h-6">
-        <path d="M9 12l2 2 4-4m5.62-1.16a10 10 0 11-5.62 5.62" strokeLinecap="round" strokeLinejoin="round" />
-      </svg>
-    ),
+    icon: <ShieldCheck {...iconProps} />,
     title: 'Verified Certificates',
     desc: 'Complete your course and earn a certificate with a unique verification code employers can check.',
   },
   {
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="w-6 h-6">
-        <path d="M3 7h18M3 12h18M3 17h18" strokeLinecap="round" />
-      </svg>
-    ),
+    icon: <ListChecks {...iconProps} />,
     title: 'Onsite & Online',
     desc: 'Choose the mode that fits your life — attend in person at our campus or join batches online.',
   },
@@ -65,7 +53,7 @@ export default function Home() {
     <div>
       {/* Hero */}
       <section className="relative overflow-hidden gradient-mesh">
-        <div className="absolute inset-0 hero-grid opacity-50" />
+        <div className="absolute inset-0 hero-grid opacity-[0.06]" />
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 pt-16 md:pt-24 pb-20 grid md:grid-cols-2 gap-12 items-center">
           <div className="animate-fade-up">
             <span className="kicker">
@@ -88,33 +76,31 @@ export default function Home() {
               </Link>
             </div>
 
-            <div className="mt-12 flex items-center gap-6 text-sm">
-              <div>
-                <p className="font-display text-2xl font-bold text-ink">{courses.length || '—'}</p>
-                <p className="font-mono text-[11px] uppercase tracking-wide text-muted">Active courses</p>
+            <div className="mt-12 flex items-center gap-3 text-sm">
+              <div className="bg-ink text-white rounded-card px-4 py-3">
+                <p className="font-display text-2xl font-bold">{courses.length || '—'}</p>
+                <p className="font-mono text-[11px] uppercase tracking-wide text-white/60">Active courses</p>
               </div>
-              <div className="w-px h-10 bg-line" />
-              <div>
-                <p className="font-display text-2xl font-bold text-ink">Cohort</p>
-                <p className="font-mono text-[11px] uppercase tracking-wide text-muted">Based learning</p>
+              <div className="bg-brand text-white rounded-card px-4 py-3">
+                <p className="font-display text-2xl font-bold">Cohort</p>
+                <p className="font-mono text-[11px] uppercase tracking-wide text-white/80">Based learning</p>
               </div>
-              <div className="w-px h-10 bg-line" />
-              <div>
-                <p className="font-display text-2xl font-bold text-ink">Certified</p>
-                <p className="font-mono text-[11px] uppercase tracking-wide text-muted">On completion</p>
+              <div className="bg-ink text-white rounded-card px-4 py-3">
+                <p className="font-display text-2xl font-bold">Certified</p>
+                <p className="font-mono text-[11px] uppercase tracking-wide text-white/60">On completion</p>
               </div>
             </div>
           </div>
 
           <div className="relative animate-fade-up" style={{ animationDelay: '0.1s' }}>
-            <div className="relative rounded-xl2 overflow-hidden shadow-hover">
+            <div className="relative rounded-xl2 overflow-hidden shadow-hover border-4 border-white">
               <img
                 src={HERO_IMG}
                 alt="Students learning in a computer classroom"
                 className="w-full h-[360px] md:h-[420px] object-cover"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-ink/60 via-transparent to-transparent" />
-              <div className="absolute bottom-5 left-5 right-5 bg-white/95 backdrop-blur rounded-card p-4 shadow-card">
+              <div className="absolute inset-0 bg-gradient-to-t from-ink/70 via-ink/10 to-transparent" />
+              <div className="absolute bottom-5 left-5 right-5 bg-white/95 backdrop-blur rounded-card p-4 shadow-card border-2 border-white">
                 <p className="font-mono text-xs text-brand-600 mb-1">// your learning path</p>
                 <ProgressThread steps={['Enroll', 'Fundamentals', 'Projects', 'Certify']} currentIndex={1} />
               </div>
@@ -124,20 +110,17 @@ export default function Home() {
       </section>
 
       {/* Features */}
-      <section className="bg-white border-y border-line">
+      <section className="bg-white border-y-2 border-brand-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-16">
           <div className="text-center mb-12">
             <p className="section-eyebrow mb-2">Why They Code It</p>
-            <h2 className="font-display text-2xl md:text-3xl font-bold">A learning experience designed for outcomes</h2>
+            <h2 className="font-display text-2xl md:text-3xl font-bold text-ink">A learning experience designed for outcomes</h2>
+            <div className="divider-brand mx-auto mt-4" />
           </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {FEATURES.map((f) => (
-              <div key={f.title} className="card p-6 hover:shadow-card transition-all duration-200">
-                <div className="w-12 h-12 rounded-xl bg-brand-50 text-brand flex items-center justify-center mb-4">
-                  {f.icon}
-                </div>
-                <h3 className="font-display font-bold text-lg mb-2">{f.title}</h3>
-                <p className="text-sm text-muted leading-relaxed">{f.desc}</p>
+            {FEATURES.map((f, i) => (
+              <div key={f.title} className={`animate-fade-up stagger-${i + 1}`}>
+                <FeatureCard icon={f.icon} title={f.title} desc={f.desc} index={i} />
               </div>
             ))}
           </div>
@@ -145,56 +128,49 @@ export default function Home() {
       </section>
 
       {/* Popular Courses */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 py-16">
-        <div className="flex items-end justify-between mb-8">
-          <div>
-            <p className="section-eyebrow mb-2">01 — Curriculum</p>
-            <h2 className="font-display text-2xl md:text-3xl font-bold">Popular Courses</h2>
+      <section>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-16">
+          <div className="flex items-end justify-between mb-8">
+            <div>
+              <p className="section-eyebrow mb-2">01 — Curriculum</p>
+              <h2 className="font-display text-2xl md:text-3xl font-bold text-ink">Popular Courses</h2>
+              <div className="divider-brand mt-4" />
+            </div>
+            <Link to="/courses" className="hidden sm:inline-flex items-center gap-1.5 text-sm font-semibold text-white bg-ink hover:bg-brand rounded-full px-4 py-2 transition-colors">
+              View all
+              <ArrowRight className="w-4 h-4" strokeWidth={2.25} />
+            </Link>
           </div>
-          <Link to="/courses" className="hidden sm:inline-flex items-center gap-1 text-sm font-semibold text-brand-700 hover:text-brand-600 transition-colors">
-            View all
-            <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4"><path d="M7.3 5.3a1 1 0 011.4 0l4 4a1 1 0 010 1.4l-4 4a1 1 0 01-1.4-1.4L10.6 10 7.3 6.7a1 1 0 010-1.4z" /></svg>
-          </Link>
-        </div>
 
-        {loadingCourses ? (
-          <LoadingSpinner fullScreen={false} />
-        ) : (
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {courses.slice(0, 6).map((c) => (
-              <Link
-                key={c.id}
-                to={`/courses/${c.slug}`}
-                className="group card-hover p-5"
-              >
-                <div className="flex items-center justify-between mb-3">
-                  <span className="pill text-brand-700 bg-brand-50">{c.level}</span>
-                  <span className="font-mono text-xs text-muted">{c.durationWeeks} weeks</span>
+          {loadingCourses ? (
+            <SkeletonCardGrid count={6} />
+          ) : (
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {courses.slice(0, 6).map((c, i) => (
+                <div key={c.id} className={`animate-fade-up stagger-${Math.min(i + 1, 8)}`}>
+                  <CourseCard course={c} index={i} compact />
                 </div>
-                <h3 className="font-display font-bold text-lg mb-2 group-hover:text-brand-700 transition-colors">{c.title}</h3>
-                <p className="text-muted text-sm mb-4 line-clamp-2">{c.description}</p>
-                <div className="pt-4 border-t border-line flex justify-between items-center">
-                  <span className="text-xs text-muted">{c.batches?.length || 0} batches available</span>
-                  <span className="font-display font-bold text-ink">Rs {c.fee?.toLocaleString()}</span>
-                </div>
-              </Link>
-            ))}
-            {courses.length === 0 && <p className="text-muted">No courses available at this time.</p>}
-          </div>
-        )}
+              ))}
+              {courses.length === 0 && <p className="text-muted">No courses available at this time.</p>}
+            </div>
+          )}
+        </div>
       </section>
 
       {/* How It Works */}
-      <section className="bg-ink text-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-16">
+      <section className="relative section-dark overflow-hidden">
+        <div className="absolute inset-0 gradient-mesh-dark" />
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 py-16">
           <div className="text-center mb-12">
-            <p className="font-mono text-xs uppercase tracking-wider text-brand-300 mb-2">02 — Process</p>
-            <h2 className="font-display text-2xl md:text-3xl font-bold">How it works</h2>
+            <span className="kicker !bg-brand mb-2">02 — Process</span>
+            <h2 className="font-display text-2xl md:text-3xl font-bold mt-4">How it works</h2>
           </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {STEPS.map((s) => (
-              <div key={s.num} className="relative">
-                <p className="font-mono text-3xl font-bold text-brand-400 mb-3">{s.num}</p>
+            {STEPS.map((s, i) => (
+              <div key={s.num} className={`relative bg-white/5 border border-white/10 rounded-card p-5 hover:bg-white/10 hover:border-brand/50 transition-colors animate-fade-up stagger-${i + 1}`}>
+                <div className="w-11 h-11 rounded-full bg-brand text-white font-mono text-sm font-bold flex items-center justify-center mb-4">
+                  {s.num}
+                </div>
                 <h3 className="font-display font-bold text-lg mb-2">{s.title}</h3>
                 <p className="text-sm text-white/60 leading-relaxed">{s.desc}</p>
               </div>
@@ -212,7 +188,7 @@ export default function Home() {
             <p className="text-white/80 mb-6 max-w-lg mx-auto">Browse our courses, pick a batch, and enroll today. Our admissions team will confirm your seat.</p>
             <Link to="/courses" className="inline-flex items-center gap-2 bg-white text-brand-700 font-semibold px-6 py-3 rounded-card hover:bg-brand-50 transition-colors">
               Browse Courses
-              <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4"><path d="M7.3 5.3a1 1 0 011.4 0l4 4a1 1 0 010 1.4l-4 4a1 1 0 01-1.4-1.4L10.6 10 7.3 6.7a1 1 0 010-1.4z" /></svg>
+              <ArrowRight className="w-4 h-4" strokeWidth={2.25} />
             </Link>
           </div>
         </div>

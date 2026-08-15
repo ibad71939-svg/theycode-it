@@ -28,11 +28,11 @@ export default function Leads() {
       <h1 className="font-display text-2xl font-semibold mb-6">Leads / CRM</h1>
       <div className="grid sm:grid-cols-3 gap-4">
         {STAGES.map((stage) => (
-          <div key={stage} className="bg-surface rounded-admin p-3">
+          <div key={stage} className="bg-brand-50 border-2 border-brand-100 rounded-admin p-3">
             <p className="text-xs font-semibold text-muted uppercase tracking-wide mb-3 px-1">{stage}</p>
             <div className="space-y-3">
               {leads.filter((l) => l.status === stage).map((l) => (
-                <div key={l.id} className="bg-white border border-muted/10 rounded-admin p-3">
+                <div key={l.id} className="bg-white border-2 border-ink/10 rounded-admin shadow-card p-3">
                   <p className="font-medium text-sm">{l.name}</p>
                   <p className="text-xs text-muted">{l.email}</p>
                   {l.courseInterest && <p className="text-xs text-brand-dark mt-1">Interested: {l.courseInterest}</p>}

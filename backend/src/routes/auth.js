@@ -1,124 +1,101 @@
 const express = require('express');
 const db = require('../lib/db');
-const { supabase, supabaseAuth } = require('../lib/supabaseClient');
+const { supabaseAuth } = require('../lib/supabaseClient');
+const { requireAuth } = require('../middleware/auth');
 
 const router = express.Router();
 
-function assertConfigured(res) {
-  if (!supabase || !supabaseAuth) {
-    res.status(500).json({
-      error: 'Supabase is not fully configured on the server (need SUPABASE_URL, SUPABASE_KEY, SUPABASE_ANON_KEY).',
-    });
-    return false;
-  }
-  return true;
-}
+// GET /api/auth/me — returns the trusted profile, with role sourced from
+// the `users` table (never from Supabase session metadata, which is
+// client-writable). No role restriction: any authenticated user calls this
+// right after signing in to find out who they are and where to route them.
+router.get('/me', requireAuth, async (req, res) => {
+  res.json({ user: req.user });
+});
 
-// Student self-registration, step 2: the frontend creates the actual Supabase
-// Auth identity itself via supabase.auth.signUp() (same code path the login
-// page already uses), then calls this endpoint — with that session's access
-// token in the Authorization header — to create the matching profile rows in
-// our own `users` + `students` tables (which hold fields Supabase Auth itself
-// doesn't store: ID number, DOB, address, guardian contact, etc). This route
-// never handles a raw password and never creates the auth account — it only
-// verifies the token and finishes the profile for whoever it belongs to.
-router.post('/register', async (req, res) => {
-  if (!assertConfigured(res)) return;
-
-  const header = req.headers.authorization || '';
-  const token = header.startsWith('Bearer ') ? header.slice(7) : null;
-  if (!token) return res.status(401).json({ error: 'Missing auth token' });
-
-  const { data: authData, error: authErr } = await supabase.auth.getUser(token);
-  if (authErr || !authData?.user) {
-    return res.status(401).json({ error: 'Invalid or expired token' });
-  }
-  const authUser = authData.user;
-
+// POST /api/auth/register — called by the frontend AFTER it has already
+// created the Supabase Auth identity itself (AuthContext.jsx calls
+// supabase.auth.signUp() directly with the anon key, then hits this route
+// with the fresh session token). This route is requireAuth-protected using
+// that token, and its only job is to create the matching `users` +
+// `students` profile rows. Role is ALWAYS hardcoded to STUDENT here — never
+// taken from anything the client sends — since this is the only
+// registration path a regular visitor can reach. Instructor/admin accounts
+// are only ever created through the controlled backend path in
+// routes/admin.js (POST /admin/instructors) or a direct DB edit.
+router.post('/register', requireAuth, async (req, res) => {
   const {
-    name, email, phone,
+    name, phone,
     idNumber, dob, gender, address,
-    guardianName, guardianRelation, guardianPhone,
+    guardianName, guardianPhone, guardianRelation,
+    consentAccepted,
   } = req.body;
 
-  if (!name || !email || !phone) {
-    return res.status(400).json({ error: 'name, email, and phone are required' });
+  if (!name || !idNumber || !dob || !address) {
+    return res.status(400).json({ error: 'name, idNumber, dob, and address are required' });
   }
-  if (!idNumber || !dob || !address) {
-    return res.status(400).json({ error: 'idNumber, dob, and address are required' });
-  }
-
-  const existing = await db.find('users', (u) => u.id === authUser.id);
-  if (existing) return res.status(409).json({ error: 'This account already has a profile.' });
 
   try {
-    const user = await db.insert('users', {
-      id: authUser.id,
-      name, email, phone,
-      role: 'STUDENT',
-      status: 'active',
-    });
-    await db.insert('students', {
-      userId: user.id,
-      idNumber, dob, gender: gender || null, address,
-      guardianName: guardianName || null,
-      guardianRelation: guardianRelation || null,
-      guardianPhone: guardianPhone || null,
-    });
+    let user = await db.find('users', { id: req.user.id });
+    if (!user) {
+      user = await db.insert('users', {
+        id: req.user.id,
+        name,
+        email: req.user.email,
+        phone: phone || null,
+        role: 'STUDENT',
+        status: 'active',
+      });
+    }
 
-    res.status(201).json({
-      user: { id: user.id, name: user.name, email: user.email, role: user.role },
-    });
+    let student = await db.find('students', { userId: user.id });
+    if (!student) {
+      student = await db.insert('students', {
+        userId: user.id,
+        idNumber,
+        dob,
+        gender: gender || null,
+        address,
+        guardianName: guardianName || null,
+        guardianPhone: guardianPhone || null,
+        guardianRelation: guardianRelation || null,
+        consentAcceptedAt: consentAccepted ? new Date().toISOString() : null,
+      });
+    }
+
+    res.status(201).json({ user, student });
   } catch (e) {
-    // Roll back the auth identity if profile creation failed, so a retry
-    // doesn't hit "email already registered" against a half-created account.
-    await supabase.auth.admin.deleteUser(authUser.id).catch(() => {});
-    console.error('Profile creation failed after Supabase signup:', e.message);
-    res.status(500).json({ error: 'Could not finish creating your profile. Please try again.' });
+    console.error('registration failed:', e.message);
+    res.status(500).json({ error: 'Could not complete registration. Please try again.' });
   }
 });
 
+// POST /api/auth/login — fallback path, only used when the frontend isn't
+// configured to talk to Supabase Auth directly (see AuthContext.jsx's
+// `if (import.meta.env.VITE_SUPABASE_URL)` branch — this is what runs when
+// that env var is missing). Validates the password with the anon client
+// (same check the frontend would do), then returns the session token plus
+// the trusted profile in one response.
 router.post('/login', async (req, res) => {
-  if (!assertConfigured(res)) return;
-
   const { email, password } = req.body;
   if (!email || !password) return res.status(400).json({ error: 'email and password are required' });
+  if (!supabaseAuth) return res.status(500).json({ error: 'Supabase is not configured on the server' });
 
   const { data, error } = await supabaseAuth.auth.signInWithPassword({ email, password });
-  if (error) return res.status(401).json({ error: 'Invalid credentials' });
+  if (error || !data?.session) return res.status(401).json({ error: 'Invalid email or password' });
 
-  const authUser = data.user;
-  let profile = await db.find('users', (u) => u.id === authUser.id);
-
-  // Legacy/manual accounts created directly in the Supabase dashboard won't
-  // have a profile row yet — create a minimal one on first login.
+  let profile = await db.find('users', { id: data.user.id });
   if (!profile) {
-    profile = await db.insert('users', {
-      id: authUser.id,
-      name: authUser.user_metadata?.name || authUser.email,
-      email: authUser.email,
-      phone: authUser.user_metadata?.phone || null,
-      role: authUser.user_metadata?.role || 'STUDENT',
-      status: 'active',
-    });
-    // If this user is a STUDENT, also create a matching students profile row
-    // so student-only routes (e.g. /api/student/dashboard) won't 404.
-    try {
-      if ((profile.role || '').toUpperCase() === 'STUDENT') {
-        const existingStudent = await db.find('students', (s) => s.userId === profile.id);
-        if (!existingStudent) {
-          await db.insert('students', { userId: profile.id, idNumber: null, dob: null, address: null });
-        }
-      }
-    } catch (e) {
-      console.error('Could not auto-create student profile on login:', e.message);
-    }
+    // Same rule as middleware/auth.js: never trust user_metadata.role.
+    profile = {
+      id: data.user.id,
+      email: data.user.email,
+      name: data.user.user_metadata?.name || data.user.email,
+      role: 'STUDENT',
+    };
   }
 
-  res.json({
-    token: data.session.access_token,
-    user: { id: profile.id, name: profile.name, email: profile.email, role: profile.role },
-  });
+  res.json({ token: data.session.access_token, user: profile });
 });
 
 module.exports = router;

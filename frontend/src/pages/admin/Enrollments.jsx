@@ -2,17 +2,28 @@ import { useEffect, useState } from 'react';
 import { api } from '../../lib/api';
 import { useAuth } from '../../context/AuthContext';
 import LoadingSpinner from '../../components/LoadingSpinner';
+import Pagination from '../../components/Pagination';
 
 export default function Enrollments() {
   const { token } = useAuth();
   const [enrollments, setEnrollments] = useState([]);
   const [filter, setFilter] = useState('PENDING');
+  const [page, setPage] = useState(1);
+  const [meta, setMeta] = useState({ totalPages: 1, total: 0 });
 
   function load() {
     if (!token) return;
-    api.get(`/admin/enrollments${filter ? `?status=${filter}` : ''}`, token).then(setEnrollments).catch(() => {});
+    const statusQuery = filter ? `status=${filter}&` : '';
+    api.get(`/admin/enrollments?${statusQuery}page=${page}&limit=20`, token)
+      .then((res) => { setEnrollments(res.data); setMeta({ totalPages: res.totalPages, total: res.total }); })
+      .catch(() => {});
   }
-  useEffect(load, [token, filter]);
+  useEffect(load, [token, filter, page]);
+
+  function changeFilter(s) {
+    setFilter(s);
+    setPage(1); // switching filters starts back at page 1 of the new set
+  }
 
   async function updateStatus(id, status) {
     await api.put(`/admin/enrollments/${id}/status`, { status }, token);
@@ -26,7 +37,7 @@ export default function Enrollments() {
       <h1 className="font-display text-2xl font-semibold mb-6">Enrollment Approvals</h1>
       <div className="flex gap-2 mb-6">
         {['PENDING', 'APPROVED', 'REJECTED', ''].map((s) => (
-          <button key={s || 'all'} onClick={() => setFilter(s)}
+          <button key={s || 'all'} onClick={() => changeFilter(s)}
             className={`text-sm font-medium px-4 py-1.5 rounded-full border ${filter === s ? 'bg-brand text-white border-brand' : 'border-muted/20 text-muted'}`}>
             {s || 'All'}
           </button>
@@ -35,7 +46,7 @@ export default function Enrollments() {
 
       <div className="space-y-3">
         {enrollments.map((e) => (
-          <div key={e.id} className="bg-white border border-muted/10 rounded-admin p-4 flex justify-between items-center">
+          <div key={e.id} className="bg-white border-2 border-ink/10 rounded-admin shadow-card p-4 flex justify-between items-center">
             <div>
               <p className="font-semibold">{e.student?.user?.name} <span className="text-muted font-normal">· {e.student?.user?.email}</span></p>
               <p className="text-sm text-muted mt-1">{e.batch?.course?.title} — {e.batch?.schedule}</p>
@@ -54,6 +65,11 @@ export default function Enrollments() {
         ))}
         {enrollments.length === 0 && <p className="text-muted">No enrollments in this filter.</p>}
       </div>
+      {meta.totalPages > 1 && (
+        <div className="bg-white border-2 border-ink/10 rounded-admin shadow-card mt-4">
+          <Pagination page={page} totalPages={meta.totalPages} total={meta.total} onPageChange={setPage} />
+        </div>
+      )}
     </div>
   );
 }

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { CheckCircle2 } from 'lucide-react';
 import { api } from '../../lib/api';
 import Field from '../../components/Field';
 
@@ -31,17 +32,18 @@ export default function Contact() {
         </div>
       </section>
 
+      <div className="section-tint">
       <div className="max-w-2xl mx-auto px-4 sm:px-6 py-12">
         {sent ? (
-          <div className="card border-mint-300 p-8 text-center animate-scale-in">
-            <div className="w-14 h-14 rounded-full bg-mint-50 text-mint flex items-center justify-center mx-auto mb-4">
-              <svg viewBox="0 0 20 20" fill="currentColor" className="w-7 h-7"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16Zm3.53-9.72a.75.75 0 00-1.06-1.06L9 10.69 7.53 9.22a.75.75 0 00-1.06 1.06l2 2a.75.75 0 001.06 0l4-4Z" clipRule="evenodd" /></svg>
+          <div className="card-on-tint border border-success-200 p-8 text-center animate-scale-in shadow-card">
+            <div className="w-14 h-14 rounded-full bg-success-50 text-success-600 flex items-center justify-center mx-auto mb-4">
+              <CheckCircle2 className="w-7 h-7" strokeWidth={1.8} />
             </div>
             <h2 className="font-display text-xl font-bold mb-2">Thanks! We'll be in touch.</h2>
-            <p className="text-muted">Our admissions team will reach out shortly.</p>
+            <p className="text-neutral-500">Our admissions team will reach out shortly.</p>
           </div>
         ) : (
-          <form onSubmit={handleSubmit} className="card p-8 space-y-5">
+          <form onSubmit={handleSubmit} className="card-on-tint p-8 space-y-5 shadow-card">
             <div className="grid sm:grid-cols-2 gap-4">
               <Field label="Full name" required>
                 <input name="name" required placeholder="Full name" className="field-input"
@@ -70,6 +72,7 @@ export default function Contact() {
             </button>
           </form>
         )}
+      </div>
       </div>
     </div>
   );

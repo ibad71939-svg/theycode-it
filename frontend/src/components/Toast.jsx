@@ -1,4 +1,5 @@
 import { createContext, useCallback, useContext, useRef, useState } from 'react';
+import { AlertCircle, CheckCircle2, Info, X } from 'lucide-react';
 
 const ToastContext = createContext(null);
 
@@ -6,29 +7,17 @@ const VARIANTS = {
   error: {
     border: 'border-danger/20',
     bar: 'bg-danger',
-    icon: (
-      <svg viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5 text-danger shrink-0">
-        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16Zm.75-11.5a.75.75 0 00-1.5 0v4a.75.75 0 001.5 0v-4ZM10 13.5a.9.9 0 100 1.8.9.9 0 000-1.8Z" clipRule="evenodd" />
-      </svg>
-    ),
+    icon: <AlertCircle className="w-5 h-5 text-danger shrink-0" strokeWidth={2} />,
   },
   success: {
-    border: 'border-mint/20',
-    bar: 'bg-mint',
-    icon: (
-      <svg viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5 text-mint-dark shrink-0">
-        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16Zm3.53-9.72a.75.75 0 00-1.06-1.06L9 10.69 7.53 9.22a.75.75 0 00-1.06 1.06l2 2a.75.75 0 001.06 0l4-4Z" clipRule="evenodd" />
-      </svg>
-    ),
+    border: 'border-success/20',
+    bar: 'bg-success',
+    icon: <CheckCircle2 className="w-5 h-5 text-success-600 shrink-0" strokeWidth={2} />,
   },
   info: {
-    border: 'border-muted/20',
-    bar: 'bg-muted',
-    icon: (
-      <svg viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5 text-muted shrink-0">
-        <path fillRule="evenodd" d="M18 10A8 8 0 111.999 10 8 8 0 0118 10Zm-8-4.5a.75.75 0 100 1.5.75.75 0 000-1.5ZM9 9a.75.75 0 000 1.5h.25v3.25H9a.75.75 0 000 1.5h2.5a.75.75 0 000-1.5h-.25V9.75A.75.75 0 0010.5 9H9Z" clipRule="evenodd" />
-      </svg>
-    ),
+    border: 'border-neutral-200',
+    bar: 'bg-neutral-500',
+    icon: <Info className="w-5 h-5 text-neutral-500 shrink-0" strokeWidth={2} />,
   },
 };
 
@@ -77,9 +66,7 @@ export function ToastProvider({ children }) {
                 aria-label="Dismiss"
                 className="text-muted hover:text-ink shrink-0 -mt-0.5"
               >
-                <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
-                  <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22Z" />
-                </svg>
+                <X className="w-4 h-4" strokeWidth={2} />
               </button>
             </div>
           );

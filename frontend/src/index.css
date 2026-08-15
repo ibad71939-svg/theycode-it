@@ -13,7 +13,7 @@ html {
 }
 
 body {
-  @apply bg-surface text-ink font-body antialiased;
+  @apply bg-brand-50 text-ink font-body antialiased;
 }
 
 ::selection {
@@ -24,6 +24,21 @@ body {
   outline: 2px solid theme('colors.brand.DEFAULT');
   outline-offset: 2px;
   border-radius: 4px;
+}
+
+/* Safe-area helpers for notches / home-indicator bars on mobile, used by
+   the sticky Navbar and the fixed bottom nav bars (student + admin). */
+.pt-safe {
+  padding-top: env(safe-area-inset-top);
+}
+
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* Momentum scrolling + no horizontal bounce, so the app feels native on iOS. */
+html, body {
+  overscroll-behavior-x: none;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -47,7 +62,7 @@ body {
 
 @layer components {
   .kicker {
-    @apply inline-flex items-center gap-2 font-mono text-xs uppercase tracking-wider text-brand-700 bg-brand-50 px-3 py-1 rounded-full;
+    @apply inline-flex items-center gap-2 font-mono text-xs uppercase tracking-wider text-white bg-ink px-3 py-1 rounded-full;
   }
 
   .btn {
@@ -59,7 +74,7 @@ body {
   }
 
   .btn-secondary {
-    @apply btn border border-line text-ink bg-white hover:border-brand-300 hover:text-brand-700;
+    @apply btn border-2 border-ink text-ink bg-white hover:bg-ink hover:text-white;
   }
 
   .btn-ghost {
@@ -67,44 +82,172 @@ body {
   }
 
   .btn-accent {
-    @apply btn bg-accent text-white hover:bg-accent-600 shadow-sm;
+    @apply btn bg-ink text-white hover:bg-black shadow-sm;
+  }
+
+  .btn-outline-light {
+    @apply btn border-2 border-white/40 text-white hover:bg-white hover:text-ink;
   }
 
   .field-input {
-    @apply w-full border border-line rounded-card px-4 py-2.5 text-sm bg-white placeholder:text-muted/70 focus:outline-none focus:ring-2 focus:ring-brand-200 focus:border-brand transition-colors;
+    @apply w-full border-2 border-line rounded-card px-4 py-2.5 text-sm bg-white placeholder:text-muted/60 focus:outline-none focus:ring-4 focus:ring-brand-100 focus:border-brand transition-colors;
   }
 
   .pill {
     @apply text-xs font-semibold px-2.5 py-1 rounded-full;
   }
 
+  .pill-solid {
+    @apply pill bg-brand text-white;
+  }
+
+  .pill-dark {
+    @apply pill bg-ink text-white;
+  }
+
+  /* Status semantics — use these instead of defaulting every badge to brand
+     teal or ink. Solid variants for emphasis, soft variants for table rows
+     and dense lists where a solid fill would be too loud. */
+  .pill-success {
+    @apply pill bg-success-50 text-success-700 border border-success-200;
+  }
+
+  .pill-warn {
+    @apply pill bg-warn-50 text-warn-700 border border-warn-200;
+  }
+
+  .pill-danger {
+    @apply pill bg-danger-50 text-danger-700 border border-danger-200;
+  }
+
+  .pill-neutral {
+    @apply pill bg-neutral-100 text-neutral-600 border border-neutral-200;
+  }
+
+  .pill-success-solid {
+    @apply pill bg-success text-white;
+  }
+
+  .pill-warn-solid {
+    @apply pill bg-warn text-white;
+  }
+
+  .pill-danger-solid {
+    @apply pill bg-danger text-white;
+  }
+
+  /* Default card: sits on a WHITE section. A single 1px hairline + a real
+     (but tier-appropriate) shadow reads as "designed" — a 2px near-black
+     border on every card gets heavy fast when there are dozens on screen. */
   .card {
-    @apply bg-white border border-line rounded-card;
+    @apply bg-white border border-ink/[0.08] rounded-card shadow-xs;
   }
 
   .card-hover {
-    @apply card transition-all duration-200 hover:shadow-hover hover:border-brand-200;
+    @apply card transition-all duration-200 hover:shadow-hover hover:border-brand/60 hover:-translate-y-0.5;
+  }
+
+  /* Card meant to sit on a colored/tinted section — stays white so it still pops. */
+  .card-on-tint {
+    @apply bg-white border border-white rounded-card shadow-card;
+  }
+
+  /* Teal-tinted card for use on white sections, to break up white-on-white monotony. */
+  .card-tint {
+    @apply bg-brand-50 border border-brand-100 rounded-card;
+  }
+
+  .card-tint-hover {
+    @apply card-tint transition-all duration-200 hover:shadow-hover hover:border-brand hover:-translate-y-0.5;
+  }
+
+  /* Dark card for high-contrast callouts on white sections. */
+  .card-dark {
+    @apply bg-ink text-white border border-black rounded-card;
+  }
+
+  .card-dark-hover {
+    @apply card-dark transition-all duration-200 hover:shadow-hover hover:border-brand hover:-translate-y-0.5;
+  }
+
+  /* Elevation tiers for things that are genuinely more important than a
+     resting card: modals/sheets use -elevated, popovers/menus use -floating. */
+  .surface-elevated {
+    @apply bg-white border border-ink/[0.06] rounded-card shadow-md;
+  }
+
+  .surface-floating {
+    @apply bg-white border border-ink/[0.06] rounded-card shadow-lg;
   }
 
   .stat-card {
-    @apply bg-white border border-line rounded-card p-5 transition-all duration-200 hover:shadow-card;
+    @apply bg-white border border-ink/[0.08] rounded-card p-5 shadow-xs transition-all duration-200 hover:shadow-card hover:border-brand-200;
   }
 
   .table-clean thead {
-    @apply bg-surface text-muted text-left;
+    @apply bg-ink text-white text-left sticky top-0 z-10;
   }
 
   .table-clean th {
-    @apply px-4 py-3 font-mono text-[11px] uppercase tracking-wide font-medium text-muted;
+    @apply px-4 py-3 font-mono text-[11px] uppercase tracking-wide font-medium text-white/70;
   }
 
   .table-clean td {
     @apply px-4 py-3;
   }
 
+  .table-clean tbody tr {
+    @apply bg-white transition-colors;
+  }
+
+  .table-clean tbody tr:nth-child(even) {
+    @apply bg-neutral-50;
+  }
+
+  .table-clean tbody tr:hover {
+    @apply bg-brand-50/60;
+  }
+
   .table-clean tr + tr {
     @apply border-t border-line;
   }
+
+  /* Wrap a .table-clean table in this to get a bounded, scrollable region
+     with the header pinned — needed for admin tables with many rows. */
+  .table-scroll {
+    @apply max-h-[65vh] overflow-y-auto rounded-card border border-ink/[0.08];
+  }
+
+  /* Skeleton loading blocks — replace spinners for content that has a known
+     shape (cards, table rows, stat tiles), so the layout doesn't jump when
+     real data arrives. */
+  .skeleton {
+    @apply relative overflow-hidden bg-neutral-100 rounded-lg;
+    background-image: linear-gradient(90deg, transparent, rgba(255,255,255,0.7), transparent);
+    background-size: 400px 100%;
+    background-repeat: no-repeat;
+  }
+
+  .skeleton::before {
+    content: '';
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .skeleton {
+      @apply animate-shimmer;
+    }
+  }
+
+  /* Staggered entrance for grids of cards — pair with animate-fade-up.
+     Caps at 8 so a 40-item grid doesn't take 3 seconds to finish animating. */
+  .stagger-1 { animation-delay: 0.05s; }
+  .stagger-2 { animation-delay: 0.1s; }
+  .stagger-3 { animation-delay: 0.15s; }
+  .stagger-4 { animation-delay: 0.2s; }
+  .stagger-5 { animation-delay: 0.25s; }
+  .stagger-6 { animation-delay: 0.3s; }
+  .stagger-7 { animation-delay: 0.35s; }
+  .stagger-8 { animation-delay: 0.4s; }
 
   .cursor-blink {
     animation: blink-caret 1s step-end infinite;
@@ -114,18 +257,58 @@ body {
     @apply font-mono text-xs uppercase tracking-wider text-brand-600;
   }
 
+  /* Full-bleed section washes for alternating rhythm down a white-majority page. */
+  .section-white {
+    @apply bg-white;
+  }
+
+  .section-tint {
+    @apply bg-brand-50;
+  }
+
+  .section-dark {
+    @apply bg-ink text-white;
+  }
+
+  .divider-brand {
+    @apply w-12 h-1 rounded-full bg-brand;
+  }
+
   .gradient-mesh {
     background-image:
-      radial-gradient(at 20% 20%, theme('colors.brand.50') 0%, transparent 50%),
-      radial-gradient(at 80% 0%, theme('colors.accent.50') 0%, transparent 50%),
-      radial-gradient(at 40% 80%, theme('colors.mint.50') 0%, transparent 50%);
+      radial-gradient(at 15% 20%, theme('colors.brand.100') 0%, transparent 45%),
+      radial-gradient(at 85% 0%, theme('colors.brand.50') 0%, transparent 50%),
+      radial-gradient(at 50% 100%, theme('colors.brand.50') 0%, transparent 55%);
+  }
+
+  .gradient-mesh-dark {
+    background-image:
+      radial-gradient(at 20% 0%, rgba(5, 165, 140, 0.25) 0%, transparent 50%),
+      radial-gradient(at 90% 100%, rgba(5, 165, 140, 0.15) 0%, transparent 55%);
   }
 
   .hero-grid {
     background-image:
-      linear-gradient(to right, theme('colors.line') 1px, transparent 1px),
-      linear-gradient(to bottom, theme('colors.line') 1px, transparent 1px);
+      linear-gradient(to right, theme('colors.ink') 1px, transparent 1px),
+      linear-gradient(to bottom, theme('colors.ink') 1px, transparent 1px);
     background-size: 48px 48px;
     mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black 40%, transparent 100%);
+  }
+}
+
+/* Print styles — used by the admin payment voucher page. Anything with
+   .no-print (Navbar, Footer, action buttons on the voucher itself) is
+   hidden when the page is actually printed, so only the voucher content
+   goes to paper. */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  body {
+    background: white !important;
+  }
+  .print-voucher {
+    box-shadow: none !important;
+    border: none !important;
   }
 }

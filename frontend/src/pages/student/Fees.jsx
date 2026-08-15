@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { api } from '../../lib/api';
 import { useAuth } from '../../context/AuthContext';
+import PayNowPanel from '../../components/PayNowPanel';
 
 export default function Fees() {
   const { token } = useAuth();
@@ -13,6 +14,15 @@ export default function Fees() {
   const payments = enrollments.flatMap((e) => (e.payments || []).map((p) => ({ ...p, courseTitle: e.batch?.course?.title })));
   const totalPaid = payments.filter((p) => p.status === 'PAID').reduce((s, p) => s + p.amount, 0);
   const totalPending = payments.filter((p) => p.status === 'PENDING').reduce((s, p) => s + p.amount, 0);
+
+  function handlePaymentUpdated(updated) {
+    setEnrollments((prev) =>
+      prev.map((e) => ({
+        ...e,
+        payments: (e.payments || []).map((p) => (p.id === updated.id ? { ...p, ...updated } : p)),
+      }))
+    );
+  }
 
   return (
     <div className="animate-fade-up">
@@ -40,36 +50,29 @@ export default function Fees() {
         </div>
       </div>
 
-      <div className="card overflow-hidden">
-        <table className="w-full text-sm table-clean">
-          <thead>
-            <tr>
-              <th>Course</th>
-              <th>Amount</th>
-              <th>Method</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {payments.map((p) => (
-              <tr key={p.id}>
-                <td className="font-medium">{p.courseTitle}</td>
-                <td className="font-display font-bold">Rs {p.amount?.toLocaleString()}</td>
-                <td className="text-muted capitalize">{p.method}</td>
-                <td>
-                  <span className={`pill ${
-                    p.status === 'PAID' ? 'bg-mint-50 text-mint-700' :
-                    p.status === 'FAILED' ? 'bg-danger-50 text-danger' :
-                    'bg-warn-50 text-warn'
-                  }`}>{p.status}</span>
-                </td>
-              </tr>
-            ))}
-            {payments.length === 0 && (
-              <tr><td colSpan={4} className="text-center text-muted py-8">No payment records yet.</td></tr>
-            )}
-          </tbody>
-        </table>
+      <div className="space-y-4">
+        {payments.map((p) => (
+          <div key={p.id} className="card p-5">
+            <div className="flex flex-wrap justify-between items-center gap-3">
+              <div>
+                <p className="font-medium">{p.courseTitle}</p>
+                <p className="text-xs text-muted capitalize mt-0.5">{p.method?.replace('_', ' ')}</p>
+              </div>
+              <div className="flex items-center gap-4">
+                <p className="font-display font-bold">Rs {p.amount?.toLocaleString()}</p>
+                <span className={`pill ${
+                  p.status === 'PAID' ? 'bg-mint-50 text-mint-700' :
+                  p.status === 'FAILED' ? 'bg-danger-50 text-danger' :
+                  'bg-warn-50 text-warn'
+                }`}>{p.status}</span>
+              </div>
+            </div>
+            {p.status !== 'PAID' && <PayNowPanel payment={p} onUpdated={handlePaymentUpdated} />}
+          </div>
+        ))}
+        {payments.length === 0 && (
+          <div className="card p-8 text-center text-muted">No payment records yet.</div>
+        )}
       </div>
     </div>
   );

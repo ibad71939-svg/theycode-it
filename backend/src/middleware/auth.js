@@ -19,16 +19,22 @@ async function requireAuth(req, res, next) {
     if (error || !data?.user) return res.status(401).json({ error: 'Invalid or expired token' });
 
     const authUser = data.user;
-    let profile = await db.find('users', (u) => u.id === authUser.id);
+    let profile = await db.find('users', { id: authUser.id });
 
     // Fallback: profile row missing (shouldn't happen post-registration, but
-    // covers accounts created directly in the Supabase dashboard).
+    // covers accounts created directly in the Supabase dashboard). Role is
+    // ALWAYS 'STUDENT' here, never read from user_metadata — that field is
+    // client-writable via the public anon key (anyone can call
+    // supabase.auth.signUp/updateUser with any metadata they like), so
+    // trusting it for authorization would let someone self-grant
+    // SUPER_ADMIN. Real elevated roles only ever come from a `users` table
+    // row, which only this backend can write.
     if (!profile) {
       profile = {
         id: authUser.id,
         email: authUser.email,
         name: authUser.user_metadata?.name || authUser.email,
-        role: authUser.user_metadata?.role || 'STUDENT',
+        role: 'STUDENT',
       };
     }
 

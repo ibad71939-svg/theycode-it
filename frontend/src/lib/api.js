@@ -35,4 +35,22 @@ export const api = {
   post: (path, body, token, opts) => request(path, { method: 'POST', body, token, ...opts }),
   put: (path, body, token, opts) => request(path, { method: 'PUT', body, token, ...opts }),
   del: (path, token, opts) => request(path, { method: 'DELETE', token, ...opts }),
+  // For file uploads: takes a FormData instance directly and lets the
+  // browser set the multipart Content-Type header (with boundary) itself —
+  // setting it manually breaks the upload.
+  upload: async (path, formData, token, opts = {}) => {
+    if (!opts.silent) onRequestStart();
+    try {
+      const res = await fetch(`${BASE}${path}`, {
+        method: 'POST',
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+        body: formData,
+      });
+      const data = res.status === 204 ? null : await res.json().catch(() => null);
+      if (!res.ok) throw new Error((data && data.error) || 'Upload failed');
+      return data;
+    } finally {
+      if (!opts.silent) onRequestEnd();
+    }
+  },
 };

@@ -36,6 +36,7 @@ CREATE TABLE IF NOT EXISTS students (
   guardian_relation text,
   guardian_phone text,
   photo_url text,
+  consent_accepted_at timestamptz,
   created_at timestamptz DEFAULT now()
 );
 
@@ -99,8 +100,16 @@ CREATE TABLE IF NOT EXISTS payments (
   status text DEFAULT 'PENDING',
   transaction_ref text,
   paid_at timestamptz,
+  receipt_path text,
+  receipt_uploaded_at timestamptz,
   created_at timestamptz DEFAULT now()
 );
+
+-- If this table already existed before the bank-transfer receipt feature was
+-- added, run these two lines manually in the Supabase SQL editor (safe to
+-- run even if the columns already exist):
+-- ALTER TABLE payments ADD COLUMN IF NOT EXISTS receipt_path text;
+-- ALTER TABLE payments ADD COLUMN IF NOT EXISTS receipt_uploaded_at timestamptz;
 
 CREATE TABLE IF NOT EXISTS attendance (
   id text PRIMARY KEY,
@@ -173,11 +182,122 @@ CREATE TABLE IF NOT EXISTS leads (
   created_at timestamptz DEFAULT now()
 );
 
+-- Single-row key/value-ish table for site-wide settings. Currently only
+-- holds the bank details shown to students in the Pay Now panel (Bank
+-- Transfer view) -- editable from the admin Settings page instead of being
+-- hardcoded in the frontend.
+CREATE TABLE IF NOT EXISTS settings (
+  id text PRIMARY KEY,
+  bank_name text,
+  account_title text,
+  account_number text,
+  iban text,
+  branch text,
+  updated_at timestamptz DEFAULT now()
+);
+
+-- If this table is being added to a database that already existed before
+-- this feature, run this manually in the Supabase SQL editor to seed the
+-- row with the values that used to be hardcoded in the frontend (safe to
+-- run even if a row with this id already exists):
+-- INSERT INTO settings (id, bank_name, account_title, account_number, iban, branch)
+-- VALUES ('bank_details', 'Meezan Bank', 'They Code It (Pvt) Ltd', '0123-4567890-1', 'PK00 MEZN 0000 0001 2345 6789', 'Karachi Main Branch')
+-- ON CONFLICT (id) DO NOTHING;
+
+-- Audit trail — every status-changing admin action (enrollment approval,
+-- payment status change, instructor account provisioning) writes one row
+-- here via backend/src/lib/audit.js. Append-only: nothing in this app ever
+-- updates or deletes a row from this table. `details` holds a small JSON
+-- blob (e.g. {"from":"PENDING","to":"APPROVED"}) for context.
+CREATE TABLE IF NOT EXISTS audit_logs (
+  id text PRIMARY KEY,
+  actor_id text,
+  actor_email text,
+  actor_role text,
+  action text NOT NULL,
+  entity_type text NOT NULL,
+  entity_id text,
+  details text,
+  created_at timestamptz DEFAULT now()
+);
+
+-- If audit_logs is being added to a database that already has the rest of
+-- the schema, run just this CREATE TABLE block above manually in the
+-- Supabase SQL editor — it's safe to run on its own (IF NOT EXISTS).
+
+-- Consent capture at registration (terms & privacy policy acceptance).
+-- If your `students` table already existed before this feature, run this
+-- manually in the Supabase SQL editor (safe to run even if it already exists):
+-- ALTER TABLE students ADD COLUMN IF NOT EXISTS consent_accepted_at timestamptz;
+
 -- Indexes
 CREATE INDEX IF NOT EXISTS idx_courses_slug ON courses (slug);
+CREATE INDEX IF NOT EXISTS idx_audit_logs_entity ON audit_logs (entity_type, entity_id);
+CREATE INDEX IF NOT EXISTS idx_audit_logs_created_at ON audit_logs (created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_users_email ON users (email);
 CREATE INDEX IF NOT EXISTS idx_students_user_id ON students (user_id);
 CREATE INDEX IF NOT EXISTS idx_enrollments_student_id ON enrollments (student_id);
 CREATE INDEX IF NOT EXISTS idx_enrollments_batch_id ON enrollments (batch_id);
 CREATE INDEX IF NOT EXISTS idx_payments_enrollment_id ON payments (enrollment_id);
 CREATE INDEX IF NOT EXISTS idx_batches_course_id ON batches (course_id);
+
+-- Enrollment concurrency guard --------------------------------------------
+-- The application code used to do duplicate/capacity checks with a plain
+-- read followed by a separate insert. Two requests arriving at nearly the
+-- same instant could both pass the checks before either one had inserted,
+-- letting a batch go over capacity or a student apply twice. These two
+-- pieces move the guarantee into Postgres, which is the only place it can
+-- actually be enforced atomically:
+--
+-- 1. A partial unique index blocks a second *active* application outright,
+--    even if application code has a bug or is bypassed entirely. REJECTED
+--    rows are excluded so a student can re-apply after rejection.
+-- 2. A function that locks the batch row (SELECT ... FOR UPDATE) before
+--    counting seats and inserting, so concurrent callers queue up instead
+--    of racing — the second caller re-reads the up-to-date seat count
+--    after the first has committed, rather than both reading stale data.
+--
+-- If this schema already exists in your Supabase project, run just this
+-- block in the SQL editor to add the guard retroactively.
+
+CREATE UNIQUE INDEX IF NOT EXISTS uq_enrollments_student_batch_active
+  ON enrollments (student_id, batch_id)
+  WHERE status <> 'REJECTED';
+
+CREATE OR REPLACE FUNCTION apply_to_batch(
+  p_id text,
+  p_student_id text,
+  p_batch_id text
+) RETURNS enrollments AS $$
+DECLARE
+  v_capacity integer;
+  v_taken integer;
+  v_enrollment enrollments;
+BEGIN
+  -- Locks the batch row for the rest of this transaction. A second,
+  -- concurrent call for the same batch blocks here until the first
+  -- transaction commits or rolls back, so seat counts can never be read
+  -- and acted on out of date.
+  SELECT capacity INTO v_capacity FROM batches WHERE id = p_batch_id FOR UPDATE;
+
+  IF v_capacity IS NOT NULL THEN
+    SELECT count(*) INTO v_taken FROM enrollments
+      WHERE batch_id = p_batch_id AND status IN ('PENDING', 'APPROVED', 'ACTIVE', 'COMPLETED');
+    IF v_taken >= v_capacity THEN
+      RAISE EXCEPTION 'BATCH_FULL' USING ERRCODE = 'P0001';
+    END IF;
+  END IF;
+
+  INSERT INTO enrollments (id, student_id, batch_id, status, enrolled_at)
+  VALUES (p_id, p_student_id, p_batch_id, 'PENDING', now())
+  RETURNING * INTO v_enrollment;
+
+  RETURN v_enrollment;
+EXCEPTION
+  WHEN unique_violation THEN
+    -- Caught here (rather than only relying on the app-level pre-check)
+    -- so the uq_enrollments_student_batch_active index above is a real
+    -- guarantee and not just a backstop that never actually fires.
+    RAISE EXCEPTION 'DUPLICATE_APPLICATION' USING ERRCODE = 'P0002';
+END;
+$$ LANGUAGE plpgsql;

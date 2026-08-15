@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { api } from '../../lib/api';
 import { useAuth } from '../../context/AuthContext';
 import ProgressThread from '../../components/ProgressThread';
@@ -12,6 +12,7 @@ export default function CourseDetail() {
   const [course, setCourse] = useState(null);
   const [selectedBatch, setSelectedBatch] = useState('');
   const [status, setStatus] = useState('');
+  const [submitting, setSubmitting] = useState(false);
   const [userEnrollment, setUserEnrollment] = useState(null);
   const [checkingEnrollment, setCheckingEnrollment] = useState(true);
 
@@ -39,11 +40,15 @@ export default function CourseDetail() {
       return;
     }
     if (!selectedBatch) { setStatus('Please select a batch first.'); return; }
+    if (submitting) return;
+    setSubmitting(true);
     try {
       await api.post('/enrollments', { batchId: selectedBatch }, token);
       setStatus('Application submitted! Our admissions team will review and confirm your seat.');
     } catch (e) {
       setStatus(e.message);
+    } finally {
+      setSubmitting(false);
     }
   }
 
@@ -60,7 +65,7 @@ export default function CourseDetail() {
 
       {/* Header */}
       <div className="mb-8">
-        <span className="pill text-brand-700 bg-brand-50 mb-4">{course.level}</span>
+        <span className="pill-solid mb-4">{course.level}</span>
         <h1 className="font-display text-3xl md:text-4xl font-bold mt-4 mb-4">{course.title}</h1>
         <p className="text-muted text-lg leading-relaxed max-w-2xl">{course.description}</p>
 
@@ -90,8 +95,8 @@ export default function CourseDetail() {
       </div>
 
       {/* Progress */}
-      <div className="card p-6 mb-10">
-        <p className="font-mono text-xs text-muted mb-5"><span className="text-brand">// </span>your journey once you enroll</p>
+      <div className="card-tint p-6 mb-10">
+        <p className="font-mono text-xs text-muted mb-5"><span className="text-brand-700 font-semibold">// </span>your journey once you enroll</p>
         {userEnrollment ? (
           <div>
             <ProgressThread
@@ -122,7 +127,7 @@ export default function CourseDetail() {
                 <h2 className="font-display text-2xl font-bold text-mint-700 mb-3">Enrollment Confirmed</h2>
                 <p className="text-sm text-muted mb-4">You're enrolled in this course. Below is your enrollment status and details.</p>
 
-                <div className="bg-surface rounded-card p-4 space-y-3 mb-4">
+                <div className="bg-brand-50 border border-brand-100 rounded-card p-4 space-y-3 mb-4">
                   <div>
                     <p className="font-mono text-[11px] uppercase tracking-wide text-muted">Batch Schedule</p>
                     <p className="text-lg font-display font-bold text-ink mt-1">{userEnrollment.batch?.schedule || 'N/A'}</p>
@@ -155,8 +160,8 @@ export default function CourseDetail() {
               {(course.batches || []).map((b) => (
                 <label
                   key={b.id}
-                  className={`flex items-center justify-between border rounded-card p-5 cursor-pointer bg-white transition-all ${
-                    selectedBatch === b.id ? 'border-brand ring-2 ring-brand-200' : 'border-line hover:border-brand-300'
+                  className={`flex items-center justify-between border-2 rounded-card p-5 cursor-pointer bg-white transition-all ${
+                    selectedBatch === b.id ? 'border-brand ring-4 ring-brand-100' : 'border-ink/10 hover:border-brand-300'
                   }`}
                 >
                   <div className="space-y-1.5">
@@ -183,8 +188,8 @@ export default function CourseDetail() {
             </div>
 
             {course.batches?.length > 0 && (
-              <button onClick={handleRegister} className="btn-primary mt-6">
-                {user ? 'Register for This Batch' : 'Login to Register'}
+              <button onClick={handleRegister} disabled={submitting} className="btn-primary mt-6 disabled:opacity-60">
+                {submitting ? 'Submitting…' : user ? 'Register for This Batch' : 'Login to Register'}
               </button>
             )}
             {status && <p className="mt-3 text-sm text-brand-700">{status}</p>}

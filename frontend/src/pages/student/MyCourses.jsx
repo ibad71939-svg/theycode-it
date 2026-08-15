@@ -43,11 +43,11 @@ export default function MyCourses() {
             </div>
             <ProgressThread steps={STAGE_STEPS} currentIndex={stageIndex(e.status)} />
             <div className="grid sm:grid-cols-2 gap-4 mt-6 text-sm">
-              <div className="bg-surface rounded-card p-3">
+              <div className="bg-brand-50 border-2 border-brand-100 rounded-card p-3">
                 <p className="text-muted text-xs font-mono uppercase tracking-wide">Attendance sessions</p>
                 <p className="font-display font-bold text-lg mt-1">{e.attendance?.length || 0}</p>
               </div>
-              <div className="bg-surface rounded-card p-3">
+              <div className="bg-brand-50 border-2 border-brand-100 rounded-card p-3">
                 <p className="text-muted text-xs font-mono uppercase tracking-wide">Grades recorded</p>
                 <p className="font-display font-bold text-lg mt-1">{e.grades?.length || 0}</p>
               </div>

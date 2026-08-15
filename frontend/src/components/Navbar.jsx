@@ -1,6 +1,8 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
+import { Menu, X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import logo from '../assets/logo.svg';
 
 export default function Navbar() {
   const { user, logout } = useAuth();
@@ -8,22 +10,20 @@ export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
-    <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-line">
+    <header className="no-print sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-line pt-safe">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
         <Link to="/" className="flex items-center gap-2.5 group">
-          <span className="w-9 h-9 rounded-xl bg-brand text-white font-mono text-sm font-bold flex items-center justify-center group-hover:bg-brand-600 transition-colors">
-            TCI
-          </span>
+          <img src={logo} alt="They Code It" className="w-9 h-9 rounded-xl object-contain shrink-0 ring-2 ring-transparent group-hover:ring-ink/10 transition-all" />
           <span className="font-display font-bold text-lg text-ink tracking-tight hidden sm:block">
             They Code It
           </span>
         </Link>
 
         <nav className="hidden md:flex items-center gap-1">
-          <Link to="/courses" className="px-3 py-2 text-sm font-medium text-ink/70 hover:text-brand-700 hover:bg-brand-50 rounded-lg transition-colors">Courses</Link>
-          <Link to="/about" className="px-3 py-2 text-sm font-medium text-ink/70 hover:text-brand-700 hover:bg-brand-50 rounded-lg transition-colors">About</Link>
-          <Link to="/contact" className="px-3 py-2 text-sm font-medium text-ink/70 hover:text-brand-700 hover:bg-brand-50 rounded-lg transition-colors">Contact</Link>
-          <Link to="/verify-certificate" className="px-3 py-2 text-sm font-medium text-ink/70 hover:text-brand-700 hover:bg-brand-50 rounded-lg transition-colors">Verify Certificate</Link>
+          <Link to="/courses" className="px-3 py-2 text-sm font-semibold text-ink/70 hover:text-brand-700 hover:bg-brand-50 rounded-lg transition-colors">Courses</Link>
+          <Link to="/about" className="px-3 py-2 text-sm font-semibold text-ink/70 hover:text-brand-700 hover:bg-brand-50 rounded-lg transition-colors">About</Link>
+          <Link to="/contact" className="px-3 py-2 text-sm font-semibold text-ink/70 hover:text-brand-700 hover:bg-brand-50 rounded-lg transition-colors">Contact</Link>
+          <Link to="/verify-certificate" className="px-3 py-2 text-sm font-semibold text-ink/70 hover:text-brand-700 hover:bg-brand-50 rounded-lg transition-colors">Verify Certificate</Link>
         </nav>
 
         <div className="flex items-center gap-3">
@@ -60,11 +60,7 @@ export default function Navbar() {
             onClick={() => setMenuOpen(!menuOpen)}
             aria-label="Menu"
           >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-6 h-6">
-              {menuOpen
-                ? <path d="M6 18L18 6M6 6l12 12" strokeLinecap="round" />
-                : <path d="M4 6h16M4 12h16M4 18h16" strokeLinecap="round" />}
-            </svg>
+            {menuOpen ? <X className="w-6 h-6" strokeWidth={2} /> : <Menu className="w-6 h-6" strokeWidth={2} />}
           </button>
         </div>
       </div>

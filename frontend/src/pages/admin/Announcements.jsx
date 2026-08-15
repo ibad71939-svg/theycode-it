@@ -32,18 +32,18 @@ export default function Announcements() {
     <div>
       <h1 className="font-display text-2xl font-semibold mb-6">Announcements</h1>
 
-      <form onSubmit={create} className="bg-white border border-muted/10 rounded-admin p-5 mb-6 space-y-3">
+      <form onSubmit={create} className="bg-white border-2 border-ink/10 rounded-admin shadow-card p-5 mb-6 space-y-3">
         <Field label="Title" required>
-          <input name="title" required placeholder="Title" className="w-full border border-muted/20 rounded-admin px-3 py-2"
+          <input name="title" required placeholder="Title" className="w-full border-2 border-ink/10 rounded-admin px-3 py-2"
             value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
         </Field>
         <Field label="Message" required>
-          <textarea name="body" required placeholder="Message" rows={3} className="w-full border border-muted/20 rounded-admin px-3 py-2"
+          <textarea name="body" required placeholder="Message" rows={3} className="w-full border-2 border-ink/10 rounded-admin px-3 py-2"
             value={form.body} onChange={(e) => setForm({ ...form, body: e.target.value })} />
         </Field>
         <div className="flex justify-between items-end">
           <Field label="Audience">
-            <select name="audience" className="border border-muted/20 rounded-admin px-3 py-2 text-sm"
+            <select name="audience" className="border-2 border-ink/10 rounded-admin px-3 py-2 text-sm"
               value={form.audience} onChange={(e) => setForm({ ...form, audience: e.target.value })}>
               <option value="all">Everyone</option>
               <option value="students">Students only</option>
@@ -55,7 +55,7 @@ export default function Announcements() {
 
       <div className="space-y-3">
         {list.map((a) => (
-          <div key={a.id} className="bg-white border border-muted/10 rounded-admin p-4">
+          <div key={a.id} className="bg-white border-2 border-ink/10 rounded-admin shadow-card p-4">
             <div className="flex justify-between items-start">
               <p className="font-semibold">{a.title}</p>
               <span className="text-xs text-muted">{new Date(a.createdAt).toLocaleDateString()}</span>

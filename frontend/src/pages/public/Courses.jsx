@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../../lib/api';
 import LoadingSpinner from '../../components/LoadingSpinner';
+import CourseCard from '../../components/CourseCard';
 
 export default function Courses() {
   const [courses, setCourses] = useState([]);
@@ -44,10 +45,10 @@ export default function Courses() {
             <button
               key={l}
               onClick={() => setLevelFilter(l)}
-              className={`text-sm font-semibold px-4 py-2 rounded-full border transition-all ${
+              className={`text-sm font-semibold px-4 py-2 rounded-full border-2 transition-all ${
                 levelFilter === l
                   ? 'bg-brand text-white border-brand'
-                  : 'bg-white border-line text-muted hover:border-brand-300 hover:text-brand-700'
+                  : 'bg-white border-ink/10 text-muted hover:border-brand hover:text-brand-700'
               }`}
             >
               {l === 'all' ? 'All Levels' : l}
@@ -62,36 +63,8 @@ export default function Courses() {
           </div>
         ) : (
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filtered.map((c) => (
-              <Link key={c.id} to={`/courses/${c.slug}`} className="group card-hover p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <span className="pill text-brand-700 bg-brand-50">{c.level}</span>
-                  <span className="font-mono text-xs text-muted">{c.durationWeeks} weeks</span>
-                </div>
-                <h2 className="font-display font-bold text-xl mb-2 group-hover:text-brand-700 transition-colors">{c.title}</h2>
-                <p className="text-sm text-muted mb-5 line-clamp-2">{c.description}</p>
-
-                <div className="space-y-1.5 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-muted">Fee</span>
-                    <span className="font-display font-bold text-brand-700">Rs {c.fee?.toLocaleString()}</span>
-                  </div>
-                  {c.category && (
-                    <div className="flex justify-between">
-                      <span className="text-muted">Category</span>
-                      <span className="font-medium text-ink">{c.category.name}</span>
-                    </div>
-                  )}
-                </div>
-
-                <div className="mt-5 pt-4 border-t border-line flex justify-between items-center">
-                  <p className="text-xs text-muted">{c.batches?.length || 0} batch{c.batches?.length !== 1 ? 'es' : ''} available</p>
-                  <span className="inline-flex items-center gap-1 text-sm font-semibold text-brand-700 group-hover:gap-2 transition-all">
-                    View Course
-                    <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4"><path d="M7.3 5.3a1 1 0 011.4 0l4 4a1 1 0 010 1.4l-4 4a1 1 0 01-1.4-1.4L10.6 10 7.3 6.7a1 1 0 010-1.4z" /></svg>
-                  </span>
-                </div>
-              </Link>
+            {filtered.map((c, i) => (
+              <CourseCard key={c.id} course={c} index={i} />
             ))}
           </div>
         )}

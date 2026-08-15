@@ -21,7 +21,14 @@ export default function Attendance() {
   useEffect(() => {
     if (!batchId) { setEnrollments([]); return; }
     setLoadingEnrollments(true);
-    api.get(`/admin/enrollments?batchId=${batchId}`, token).then(setEnrollments).catch(() => {}).finally(() => setLoadingEnrollments(false));
+    // GET /admin/enrollments is paginated — it returns
+    // { data, page, limit, total, totalPages }, not a bare array. Ask for a
+    // high limit since this page needs the whole roster for the batch, not
+    // one page of it.
+    api.get(`/admin/enrollments?batchId=${batchId}&limit=100`, token)
+      .then((res) => setEnrollments(res.data))
+      .catch(() => {})
+      .finally(() => setLoadingEnrollments(false));
   }, [batchId, token]);
 
   async function mark(enrollmentId, status) {
@@ -46,7 +53,7 @@ export default function Attendance() {
       <p className="text-sm text-muted mb-4">Marking attendance for today, {new Date().toLocaleDateString()}.</p>
 
       <Field label="Batch" className="mb-6 w-full sm:w-96">
-        <select name="batchId" className="w-full border border-muted/20 rounded-admin px-3 py-2"
+        <select name="batchId" className="w-full border-2 border-ink/10 rounded-admin px-3 py-2"
           value={batchId} onChange={(e) => setBatchId(e.target.value)}>
           <option value="">Select a batch…</option>
           {batches.map((b) => <option key={b.id} value={b.id}>{batchLabel(b)}</option>)}
@@ -58,7 +65,7 @@ export default function Attendance() {
       {batchId && !loadingEnrollments && (
         <div className="space-y-3">
           {enrollments.filter((e) => e.status === 'APPROVED' || e.status === 'ACTIVE').map((e) => (
-            <div key={e.id} className="bg-white border border-muted/10 rounded-admin p-4 flex justify-between items-center">
+            <div key={e.id} className="bg-white border-2 border-ink/10 rounded-admin shadow-card p-4 flex justify-between items-center">
               <div>
                 <p className="font-medium">{e.student?.user?.name}</p>
                 <p className="text-xs text-muted">{e.student?.user?.email}</p>

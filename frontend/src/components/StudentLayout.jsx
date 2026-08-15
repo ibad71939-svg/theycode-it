@@ -1,26 +1,22 @@
 import { NavLink, Outlet } from 'react-router-dom';
+import { LayoutDashboard, BookOpen, ClipboardList, CreditCard } from 'lucide-react';
+
+const iconProps = { className: 'w-5 h-5', strokeWidth: 1.8 };
 
 const links = [
-  { to: '/student/dashboard', label: 'Dashboard', icon: (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="w-5 h-5"><path d="M3 12l9-9 9 9M5 10v10h4v-6h6v6h4V10" strokeLinecap="round" strokeLinejoin="round" /></svg>
-  )},
-  { to: '/student/courses', label: 'My Courses', icon: (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="w-5 h-5"><path d="M4 5h16v14H4z M4 9h16 M8 5v14" strokeLinecap="round" strokeLinejoin="round" /></svg>
-  )},
-  { to: '/student/assignments', label: 'Assignments', icon: (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="w-5 h-5"><path d="M9 5h6M9 8h6M5 2h14v20H5z M9 18l2 2 4-4" strokeLinecap="round" strokeLinejoin="round" /></svg>
-  )},
-  { to: '/student/fees', label: 'Fees', icon: (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="w-5 h-5"><rect x="2" y="5" width="20" height="14" rx="2" /><path d="M2 10h20" /></svg>
-  )},
+  { to: '/student/dashboard', label: 'Dashboard', short: 'Home', icon: <LayoutDashboard {...iconProps} /> },
+  { to: '/student/courses', label: 'My Courses', short: 'Courses', icon: <BookOpen {...iconProps} /> },
+  { to: '/student/assignments', label: 'Assignments', short: 'Tasks', icon: <ClipboardList {...iconProps} /> },
+  { to: '/student/fees', label: 'Fees', short: 'Fees', icon: <CreditCard {...iconProps} /> },
 ];
 
 export default function StudentLayout() {
   return (
-    <div className="w-full px-4 sm:px-6 lg:px-10 py-8 grid md:grid-cols-[240px_1fr] gap-8">
-      <aside className="md:sticky md:top-20 md:self-start">
-        <div className="card p-4">
-          <p className="font-mono text-[11px] uppercase tracking-wider text-muted px-2 mb-3">Student Portal</p>
+    <div className="w-full px-4 sm:px-6 lg:px-10 py-6 md:py-8 grid md:grid-cols-[240px_1fr] gap-8 pb-24 md:pb-8">
+      {/* Desktop/tablet sidebar — replaced by the bottom tab bar below on mobile */}
+      <aside className="hidden md:block md:sticky md:top-20 md:self-start">
+        <div className="bg-ink text-white rounded-card p-4 shadow-card">
+          <p className="font-mono text-[11px] uppercase tracking-wider text-white/40 px-2 mb-3">Student Portal</p>
           <div className="space-y-1">
             {links.map((l) => (
               <NavLink
@@ -28,7 +24,7 @@ export default function StudentLayout() {
                 to={l.to}
                 className={({ isActive }) =>
                   `flex items-center gap-3 px-3 py-2.5 rounded-card text-sm font-medium transition-colors ${
-                    isActive ? 'bg-brand text-white' : 'text-ink/70 hover:bg-brand-50 hover:text-brand-700'
+                    isActive ? 'bg-brand text-white' : 'text-white/60 hover:bg-white/10 hover:text-white'
                   }`
                 }
               >
@@ -39,7 +35,28 @@ export default function StudentLayout() {
           </div>
         </div>
       </aside>
-      <main><Outlet /></main>
+
+      <main className="min-w-0"><Outlet /></main>
+
+      {/* Mobile app-style bottom tab bar — fixed, thumb-reachable, safe-area aware */}
+      <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-ink border-t border-white/10 pb-safe">
+        <div className="grid grid-cols-4">
+          {links.map((l) => (
+            <NavLink
+              key={l.to}
+              to={l.to}
+              className={({ isActive }) =>
+                `flex flex-col items-center justify-center gap-1 py-2.5 transition-colors ${
+                  isActive ? 'text-brand' : 'text-white/50 active:text-white/80'
+                }`
+              }
+            >
+              {l.icon}
+              <span className="text-[10px] font-semibold tracking-wide">{l.short}</span>
+            </NavLink>
+          ))}
+        </div>
+      </nav>
     </div>
   );
 }

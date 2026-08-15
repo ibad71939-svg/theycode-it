@@ -1,0 +1,181 @@
+{
+  "users": [
+    {
+      "id": "038a0fa208c3809ed1e1d99a",
+      "createdAt": "2026-08-12T06:52:28.943Z",
+      "name": "Ayesha Khan",
+      "email": "admin@theycodeit.com",
+      "passwordHash": "$2a$10$fzMB8UX8OCkITHT.n/2yZ.3PKfBUngp9lQEuC2p7xk.LVmHzJNjNq",
+      "role": "SUPER_ADMIN",
+      "status": "active"
+    },
+    {
+      "id": "9a1aeddd9ec895d0ec7c899c",
+      "createdAt": "2026-08-12T06:52:28.954Z",
+      "name": "Bilal Ahmed",
+      "email": "bilal@theycodeit.com",
+      "passwordHash": "$2a$10$fzMB8UX8OCkITHT.n/2yZ.3PKfBUngp9lQEuC2p7xk.LVmHzJNjNq",
+      "role": "INSTRUCTOR",
+      "status": "active"
+    },
+    {
+      "id": "ffee22c3b7d415f26700de6b",
+      "createdAt": "2026-08-12T06:52:28.968Z",
+      "name": "Hassan Raza",
+      "email": "student@theycodeit.com",
+      "passwordHash": "$2a$10$fzMB8UX8OCkITHT.n/2yZ.3PKfBUngp9lQEuC2p7xk.LVmHzJNjNq",
+      "role": "STUDENT",
+      "status": "active"
+    },
+    {
+      "id": "6b62b0b4d4c3e9f6e8c405c6",
+      "createdAt": "2026-08-12T06:56:00.658Z",
+      "name": "Ibaad Ur Rehman",
+      "email": "ibaadraheel5@gmail.com",
+      "phone": "03462742826",
+      "passwordHash": "$2a$10$BeJUxO83BP8NbVagUFmpNOLaF507tgdg4LMqqq5xGPnkJcAmqYRea",
+      "role": "STUDENT",
+      "status": "active"
+    },
+    {
+      "id": "3bdee3a5c825ce6fb33df6ff",
+      "createdAt": "2026-08-12T07:01:24.669Z",
+      "name": "Ibaad Ur Rehman",
+      "email": "ibaadraheel@gmail.com",
+      "phone": "03462742826",
+      "passwordHash": "$2a$10$sU6QU0vKsXzVSDGgnuoLD.ZPgPBMIXeFsvFp3/yPdi4bOI6Cw6U16",
+      "role": "STUDENT",
+      "status": "active"
+    }
+  ],
+  "students": [
+    {
+      "id": "7229c1d58be206cbad68942f",
+      "createdAt": "2026-08-12T06:52:28.975Z",
+      "userId": "ffee22c3b7d415f26700de6b",
+      "idNumber": "42101-0000000-1"
+    },
+    {
+      "id": "21c9ce3ffc7629dbacbf98dc",
+      "createdAt": "2026-08-12T06:56:00.662Z",
+      "userId": "6b62b0b4d4c3e9f6e8c405c6"
+    },
+    {
+      "id": "76d2ba63f31da098ac464cd8",
+      "createdAt": "2026-08-12T07:01:24.675Z",
+      "userId": "3bdee3a5c825ce6fb33df6ff"
+    }
+  ],
+  "instructors": [
+    {
+      "id": "0e5958760836dc7c0c833acf",
+      "createdAt": "2026-08-12T06:52:28.961Z",
+      "userId": "9a1aeddd9ec895d0ec7c899c",
+      "bio": "Full-stack instructor, 8 years industry experience.",
+      "specialization": "Web Development"
+    }
+  ],
+  "categories": [
+    {
+      "id": "60f2b44c075d9a558f6b9bd2",
+      "createdAt": "2026-08-12T06:52:28.983Z",
+      "name": "Web Development"
+    }
+  ],
+  "courses": [
+    {
+      "id": "3dec02d421b40878e6fa3c26",
+      "createdAt": "2026-08-12T06:52:28.991Z",
+      "title": "Full-Stack Web Development",
+      "slug": "full-stack-web-development",
+      "description": "From HTML/CSS fundamentals to building and deploying full-stack React + Node applications.",
+      "durationWeeks": 16,
+      "fee": 45000,
+      "level": "Beginner to Intermediate",
+      "categoryId": "60f2b44c075d9a558f6b9bd2",
+      "isPublished": true
+    },
+    {
+      "id": "6052a0da2a0d0005f32002ff",
+      "createdAt": "2026-08-12T06:52:28.998Z",
+      "title": "Python for Data Science",
+      "slug": "python-for-data-science",
+      "description": "Core Python, pandas, and data visualization for aspiring data analysts.",
+      "durationWeeks": 10,
+      "fee": 32000,
+      "level": "Beginner",
+      "categoryId": "60f2b44c075d9a558f6b9bd2",
+      "isPublished": true
+    }
+  ],
+  "batches": [
+    {
+      "id": "905991ce5bfffb5320c42819",
+      "createdAt": "2026-08-12T06:52:29.005Z",
+      "courseId": "3dec02d421b40878e6fa3c26",
+      "instructorId": "0e5958760836dc7c0c833acf",
+      "startDate": "2026-09-01",
+      "endDate": "2026-12-20",
+      "schedule": "Mon/Wed/Fri, 6:00–8:00 PM",
+      "capacity": 30,
+      "mode": "onsite",
+      "status": "upcoming"
+    },
+    {
+      "id": "1ba5fd65da285827e71ce7d4",
+      "createdAt": "2026-08-12T06:52:29.012Z",
+      "courseId": "6052a0da2a0d0005f32002ff",
+      "instructorId": "0e5958760836dc7c0c833acf",
+      "startDate": "2026-09-15",
+      "endDate": "2026-11-24",
+      "schedule": "Tue/Thu, 7:00–9:00 PM",
+      "capacity": 25,
+      "mode": "online",
+      "status": "upcoming"
+    }
+  ],
+  "enrollments": [
+    {
+      "id": "8d936f0673d7982b97029e4b",
+      "createdAt": "2026-08-12T06:52:29.019Z",
+      "studentId": "7229c1d58be206cbad68942f",
+      "batchId": "905991ce5bfffb5320c42819",
+      "status": "APPROVED",
+      "enrolledAt": "2026-08-12T06:52:29.014Z"
+    },
+    {
+      "id": "40674e93a312ef48c3133c94",
+      "createdAt": "2026-08-12T06:55:42.895Z",
+      "studentId": "7229c1d58be206cbad68942f",
+      "batchId": "1ba5fd65da285827e71ce7d4",
+      "status": "PENDING",
+      "enrolledAt": "2026-08-12T06:55:42.893Z"
+    }
+  ],
+  "payments": [
+    {
+      "id": "465ca469b4c4c7afe514f70c",
+      "createdAt": "2026-08-12T06:52:29.026Z",
+      "enrollmentId": "8d936f0673d7982b97029e4b",
+      "amount": 45000,
+      "status": "PAID",
+      "method": "bank_transfer",
+      "paidAt": "2026-08-12T06:52:29.021Z"
+    },
+    {
+      "id": "39fafa2cf6248edb43fdc6b2",
+      "createdAt": "2026-08-12T06:55:42.899Z",
+      "enrollmentId": "40674e93a312ef48c3133c94",
+      "amount": 32000,
+      "status": "PENDING",
+      "method": "manual"
+    }
+  ],
+  "attendance": [],
+  "assignments": [],
+  "submissions": [],
+  "grades": [],
+  "certificates": [],
+  "announcements": [],
+  "leads": []
+}

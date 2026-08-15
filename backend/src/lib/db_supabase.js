@@ -47,45 +47,84 @@ function assertClient() {
 
 async function all(collection) {
   assertClient();
-  const { data, error } = await supabase.from(collection).select('*');
-  if (error) throw new Error(`[supabase] ${collection}: ${error.message}`);
+  // The collection name itself needs the same camelCase -> snake_case
+  // conversion as record fields do (Postgres tables here are all
+  // snake_case, e.g. `audit_logs`), or a multi-word collection name like
+  // 'auditLogs' silently resolves to a table that doesn't exist.
+  const table = camelToSnake(collection);
+  const { data, error } = await supabase.from(table).select('*');
+  if (error) throw new Error(`[supabase] ${table}: ${error.message}`);
   return (data || []).map(toCamelCaseObject);
 }
 
-async function find(collection, predicate) {
-  const rows = await all(collection);
-  return rows.find(predicate);
+// find/filter accept either:
+//   - a JS predicate function (legacy path): fetches the whole table with
+//     `all()` and filters in memory. Kept for call sites with multi-field
+//     or non-equality conditions that don't map cleanly onto `.match()`.
+//   - a plain object of { column: value } equality pairs (preferred): pushed
+//     down to Postgres via `.match()` so only matching rows cross the wire.
+// Route files were migrated to the object form wherever the predicate was a
+// single `field === value` check; a handful of multi-condition/`.includes`
+// predicates still use the function form on purpose.
+async function find(collection, predicateOrWhere) {
+  if (typeof predicateOrWhere === 'function') {
+    const rows = await all(collection);
+    return rows.find(predicateOrWhere);
+  }
+  return findWhere(collection, predicateOrWhere);
 }
 
-async function filter(collection, predicate) {
-  const rows = await all(collection);
-  return rows.filter(predicate);
+async function filter(collection, predicateOrWhere) {
+  if (typeof predicateOrWhere === 'function') {
+    const rows = await all(collection);
+    return rows.filter(predicateOrWhere);
+  }
+  return filterWhere(collection, predicateOrWhere);
+}
+
+async function findWhere(collection, where) {
+  assertClient();
+  const table = camelToSnake(collection);
+  const { data, error } = await supabase.from(table).select('*').match(toSnakeCaseObject(where)).limit(1);
+  if (error) throw new Error(`[supabase] ${table}: ${error.message}`);
+  return data && data.length ? toCamelCaseObject(data[0]) : undefined;
+}
+
+async function filterWhere(collection, where) {
+  assertClient();
+  const table = camelToSnake(collection);
+  const { data, error } = await supabase.from(table).select('*').match(toSnakeCaseObject(where));
+  if (error) throw new Error(`[supabase] ${table}: ${error.message}`);
+  return (data || []).map(toCamelCaseObject);
 }
 
 async function insert(collection, record) {
   assertClient();
+  const table = camelToSnake(collection);
   const row = { id: record.id || id(), createdAt: record.createdAt || new Date().toISOString(), ...record };
-  const { data, error } = await supabase.from(collection).insert(toSnakeCaseObject(row)).select().single();
-  if (error) throw new Error(`[supabase] insert ${collection}: ${error.message}`);
+  const { data, error } = await supabase.from(table).insert(toSnakeCaseObject(row)).select().single();
+  if (error) throw new Error(`[supabase] insert ${table}: ${error.message}`);
   return toCamelCaseObject(data);
 }
 
 async function update(collection, recordId, patch) {
   assertClient();
+  const table = camelToSnake(collection);
   const { data, error } = await supabase
-    .from(collection)
+    .from(table)
     .update(toSnakeCaseObject(patch))
     .eq('id', recordId)
     .select()
     .single();
-  if (error) throw new Error(`[supabase] update ${collection}: ${error.message}`);
+  if (error) throw new Error(`[supabase] update ${table}: ${error.message}`);
   return toCamelCaseObject(data);
 }
 
 async function remove(collection, recordId) {
   assertClient();
-  const { error } = await supabase.from(collection).delete().eq('id', recordId);
-  if (error) throw new Error(`[supabase] delete ${collection}: ${error.message}`);
+  const table = camelToSnake(collection);
+  const { error } = await supabase.from(table).delete().eq('id', recordId);
+  if (error) throw new Error(`[supabase] delete ${table}: ${error.message}`);
 }
 
-module.exports = { id, reset: async () => {}, all, find, filter, insert, update, remove };
+module.exports = { id, reset: async () => {}, all, find, filter, findWhere, filterWhere, insert, update, remove };
